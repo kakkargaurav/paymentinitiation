@@ -113,6 +113,66 @@ paths:
                   nppData:
                     paymentCategory: PAYID_PAYMENT
                     urgency: HIGH
+              failure_insufficient_funds:
+                summary: NPP Payment - Insufficient Funds
+                value:
+                  paymentInstructionType: NPP_INSTANT
+                  paymentInstructionAmount:
+                    amount: "999.99"
+                    currency: AUD
+                  paymentMechanism: NPP
+                  debitAccount:
+                    accountIdentification: "123456789"
+                    bankCode: "123-456"
+                    accountName: "John Doe"
+                  creditAccount:
+                    accountIdentification: "987654321"
+                    bankCode: "654-321"
+                    accountName: "Jane Smith"
+                  remittanceInformation: "Test payment - should fail with insufficient funds"
+                  nppData:
+                    paymentCategory: INSTANT_PAYMENT
+                    urgency: NORMAL
+              failure_invalid_account:
+                summary: NPP Payment - Invalid Account
+                value:
+                  paymentInstructionType: NPP_INSTANT
+                  paymentInstructionAmount:
+                    amount: "100.00"
+                    currency: AUD
+                  paymentMechanism: NPP
+                  debitAccount:
+                    accountIdentification: "123456789"
+                    bankCode: "123-456"
+                    accountName: "John Doe"
+                  creditAccount:
+                    accountIdentification: "987651111"
+                    bankCode: "654-321"
+                    accountName: "Jane Smith"
+                  remittanceInformation: "Test payment - should fail with invalid account"
+                  nppData:
+                    paymentCategory: INSTANT_PAYMENT
+                    urgency: NORMAL
+              requires_approval:
+                summary: NPP Payment - Requires Approval
+                value:
+                  paymentInstructionType: NPP_INSTANT
+                  paymentInstructionAmount:
+                    amount: "15000.00"
+                    currency: AUD
+                  paymentMechanism: NPP
+                  debitAccount:
+                    accountIdentification: "123456789"
+                    bankCode: "123-456"
+                    accountName: "John Doe"
+                  creditAccount:
+                    accountIdentification: "987654321"
+                    bankCode: "654-321"
+                    accountName: "Jane Smith"
+                  remittanceInformation: "Large payment - should require approval"
+                  nppData:
+                    paymentCategory: INSTANT_PAYMENT
+                    urgency: NORMAL
       responses:
         '201':
           description: Payment initiated successfully
@@ -331,6 +391,81 @@ paths:
               schema:
                 $ref: '#/components/schemas/TestScenariosResponse'
 
+  /payment-initiation/becs-payments/test-scenarios:
+    get:
+      summary: Get BECS test scenarios
+      description: Retrieve available test scenarios for BECS payments
+      operationId: getBECSTestScenarios
+      tags:
+        - Testing
+      responses:
+        '200':
+          description: BECS test scenarios retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestScenariosResponse'
+
+  /payment-initiation/bpay-payments/test-scenarios:
+    get:
+      summary: Get BPAY test scenarios
+      description: Retrieve available test scenarios for BPAY payments
+      operationId: getBPAYTestScenarios
+      tags:
+        - Testing
+      responses:
+        '200':
+          description: BPAY test scenarios retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestScenariosResponse'
+
+  /payment-initiation/direct-debit/test-scenarios:
+    get:
+      summary: Get Direct Debit test scenarios
+      description: Retrieve available test scenarios for Direct Debit payments
+      operationId: getDirectDebitTestScenarios
+      tags:
+        - Testing
+      responses:
+        '200':
+          description: Direct Debit test scenarios retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestScenariosResponse'
+
+  /payment-initiation/domestic-wires/test-scenarios:
+    get:
+      summary: Get Domestic Wire test scenarios
+      description: Retrieve available test scenarios for Domestic Wire transfers
+      operationId: getDomesticWireTestScenarios
+      tags:
+        - Testing
+      responses:
+        '200':
+          description: Domestic Wire test scenarios retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestScenariosResponse'
+
+  /payment-initiation/international-wires/test-scenarios:
+    get:
+      summary: Get International Wire test scenarios
+      description: Retrieve available test scenarios for International Wire transfers
+      operationId: getInternationalWireTestScenarios
+      tags:
+        - Testing
+      responses:
+        '200':
+          description: International Wire test scenarios retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestScenariosResponse'
+
   /payment-initiation/npp-payments/test-scenarios/{scenarioIndex}/generate:
     post:
       summary: Generate test data
@@ -352,6 +487,611 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenerateTestDataResponse'
+
+  /payment-initiation/becs-payments/initiate:
+    post:
+      summary: Initiate BECS payment
+      description: Create a new BECS Direct Entry payment instruction
+      operationId: initiateBECSPayment
+      tags:
+        - BECS Payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitiateBECSPaymentRequest'
+            examples:
+              becs_payment:
+                summary: BECS Direct Entry Payment
+                value:
+                  paymentInstructionType: BECS_DIRECT_ENTRY
+                  paymentInstructionAmount:
+                    amount: "500.00"
+                    currency: AUD
+                  paymentMechanism: BECS
+                  debitAccount:
+                    accountIdentification: "123456789"
+                    bankCode: "123-456"
+                    accountName: "Company Ltd"
+                  creditAccount:
+                    accountIdentification: "987654321"
+                    bankCode: "654-321"
+                    accountName: "Employee Name"
+                  remittanceInformation: "Salary payment"
+                  becsData:
+                    transactionCode: "50"
+                    processingDay: NEXT_DAY
+                    lodgementReference: "PAYROLL_2024"
+                    remitterName: "Company Ltd"
+                    directEntryUserId: "123456"
+                    apcsNumber: "123456"
+                    userSuppliedDescription: "Payroll payments"
+      responses:
+        '201':
+          description: BECS payment initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitiateBECSPaymentResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /payment-initiation/bpay-payments/initiate:
+    post:
+      summary: Initiate BPAY payment
+      description: Create a new BPAY bill payment instruction
+      operationId: initiateBPAYPayment
+      tags:
+        - BPAY Payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitiateBPAYPaymentRequest'
+            examples:
+              bpay_payment:
+                summary: BPAY Bill Payment
+                value:
+                  paymentInstructionType: BPAY_PAYMENT
+                  paymentInstructionAmount:
+                    amount: "75.50"
+                    currency: AUD
+                  paymentMechanism: BPAY
+                  debitAccount:
+                    accountIdentification: "123456789"
+                    bankCode: "123-456"
+                    accountName: "Customer Name"
+                  creditAccount:
+                    accountIdentification: "123456"
+                    accountName: "Energy Australia"
+                  remittanceInformation: "Electricity bill payment"
+                  bpayData:
+                    transactionType: BILL_PAYMENT
+                    paymentMethod: INTERNET_BANKING
+                    customerReferenceNumber: "987654321098"
+                  bpayReference:
+                    billerCode: "123456"
+                    referenceNumber: "987654321098"
+                    billerName: "Energy Australia"
+      responses:
+        '201':
+          description: BPAY payment initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitiateBPAYPaymentResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /payment-initiation/direct-debit/initiate:
+    post:
+      summary: Initiate Direct Debit
+      description: Create a new Direct Debit mandate and payment instruction
+      operationId: initiateDirectDebitPayment
+      tags:
+        - Direct Debit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitiateDirectDebitPaymentRequest'
+            examples:
+              direct_debit:
+                summary: Recurring Direct Debit
+                value:
+                  paymentInstructionType: DIRECT_DEBIT
+                  paymentInstructionAmount:
+                    amount: "29.99"
+                    currency: AUD
+                  paymentMechanism: DIRECT_DEBIT
+                  debitAccount:
+                    accountIdentification: "123456789"
+                    bankCode: "123-456"
+                    accountName: "Customer Name"
+                  creditAccount:
+                    accountIdentification: "555666777"
+                    bankCode: "555-666"
+                    accountName: "Subscription Service Pty Ltd"
+                  remittanceInformation: "Monthly subscription"
+                  directDebitData:
+                    mandateReference: "SUB_12345"
+                    directDebitType: RECURRING
+                    frequency: MONTHLY
+                    firstDebitDate: "2025-12-15"
+                    numberOfPayments: 12
+                    authorisationMethod: ONLINE
+                    creditorReference: "CRED_001"
+                    creditorName: "Subscription Service Pty Ltd"
+                    debtorReference: "DEBT_001"
+                    mandateDescription: "Monthly subscription payment"
+      responses:
+        '201':
+          description: Direct Debit initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitiateDirectDebitPaymentResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /payment-initiation/domestic-wires/initiate:
+    post:
+      summary: Initiate Domestic Wire Transfer
+      description: Create a new domestic high-value wire transfer
+      operationId: initiateDomesticWirePayment
+      tags:
+        - Domestic Wire Transfers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitiateDomesticWirePaymentRequest'
+            examples:
+              domestic_wire:
+                summary: Domestic Wire Transfer
+                value:
+                  paymentInstructionType: DOMESTIC_WIRE
+                  paymentInstructionAmount:
+                    amount: "50000.00"
+                    currency: AUD
+                  paymentMechanism: RTGS
+                  debitAccount:
+                    accountIdentification: "123456789"
+                    bankCode: "123-456"
+                    accountName: "Corporate Account"
+                  creditAccount:
+                    accountIdentification: "987654321"
+                    bankCode: "654-321"
+                    accountName: "Supplier Pty Ltd"
+                  remittanceInformation: "Invoice payment - urgent"
+                  domesticWireData:
+                    wireType: HIGH_VALUE
+                    priority: URGENT
+                    settlementMethod: RTGS
+                    executionDate: "2025-12-15"
+                    valueDate: "2025-12-15"
+                    instructionId: "WIRE123456"
+                    endToEndId: "E2E987654"
+                    chargeBearer: SHARED
+      responses:
+        '201':
+          description: Domestic wire transfer initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitiateDomesticWirePaymentResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /payment-initiation/domestic-wires/{paymentId}/update:
+    put:
+      summary: Update Domestic Wire Transfer
+      description: Update an existing domestic wire transfer before processing
+      operationId: updateDomesticWirePayment
+      tags:
+        - Domestic Wire Transfers
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Payment instruction reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDomesticWirePaymentRequest'
+      responses:
+        '200':
+          description: Domestic wire transfer updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateDomesticWirePaymentResponse'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /payment-initiation/domestic-wires/{paymentId}/request:
+    post:
+      summary: Submit Domestic Wire Transfer for processing
+      description: Submit wire transfer for processing or authorization
+      operationId: requestDomesticWirePayment
+      tags:
+        - Domestic Wire Transfers
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Payment instruction reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestDomesticWirePaymentRequest'
+      responses:
+        '200':
+          description: Domestic wire transfer request processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestDomesticWirePaymentResponse'
+
+  /payment-initiation/domestic-wires/{paymentId}/retrieve:
+    get:
+      summary: Retrieve Domestic Wire Transfer
+      description: Get wire transfer details and current status
+      operationId: retrieveDomesticWirePayment
+      tags:
+        - Domestic Wire Transfers
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Payment instruction reference
+      responses:
+        '200':
+          description: Domestic wire transfer details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveDomesticWirePaymentResponse'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /payment-initiation/domestic-wires/{paymentId}/control:
+    put:
+      summary: Control Domestic Wire Transfer
+      description: Cancel, suspend, or resume wire transfer execution
+      operationId: controlDomesticWirePayment
+      tags:
+        - Domestic Wire Transfers
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Payment instruction reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ControlDomesticWirePaymentRequest'
+      responses:
+        '200':
+          description: Domestic wire transfer control action performed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlDomesticWirePaymentResponse'
+
+  /payment-initiation/domestic-wires/{paymentId}/exchange:
+    post:
+      summary: Exchange Domestic Wire Transfer
+      description: Handle status updates and notifications for wire transfer
+      operationId: exchangeDomesticWirePayment
+      tags:
+        - Domestic Wire Transfers
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Payment instruction reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExchangeDomesticWirePaymentRequest'
+      responses:
+        '200':
+          description: Domestic wire transfer exchange processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeDomesticWirePaymentResponse'
+
+  /payment-initiation/international-wires/initiate:
+    post:
+      summary: Initiate International Wire Transfer
+      description: Create a new international SWIFT wire transfer
+      operationId: initiateInternationalWirePayment
+      tags:
+        - International Wire Transfers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitiateInternationalWirePaymentRequest'
+            examples:
+              international_wire:
+                summary: International Wire Transfer
+                value:
+                  paymentInstructionType: INTERNATIONAL_WIRE
+                  paymentInstructionAmount:
+                    amount: "25000.00"
+                    currency: USD
+                  paymentMechanism: SWIFT
+                  debitAccount:
+                    accountIdentification: "123456789"
+                    bankCode: "123-456"
+                    accountName: "Corporate Account"
+                  creditAccount:
+                    accountIdentification: "987654321"
+                    bankCode: "CHASUS33"
+                    accountName: "Overseas Supplier Inc"
+                  remittanceInformation: "Trade payment for goods"
+                  internationalWireData:
+                    wireType: COMMERCIAL_PAYMENT
+                    priority: NORMAL
+                    purposeCode: "TRADE"
+                    instructionId: "INTL123456"
+                    endToEndId: "E2E987654"
+                    chargeBearer: SHARED
+                    correspondentBankDetails:
+                      correspondentBIC: "CHASUS33"
+                      correspondentName: "JP Morgan Chase Bank"
+                      correspondentAccount: "400123456"
+                    beneficiaryBankDetails:
+                      beneficiaryBIC: "CHASUS33"
+                      beneficiaryBankName: "Chase Bank USA"
+                      beneficiaryBankAddress: "New York, NY, USA"
+                    regulatoryReporting:
+                      reportingCode: "TRADE"
+                      reportingDescription: "Trade payment"
+              compliance_failure:
+                summary: International Wire - Compliance Failure
+                value:
+                  paymentInstructionType: INTERNATIONAL_WIRE
+                  paymentInstructionAmount:
+                    amount: "15000.00"
+                    currency: USD
+                  paymentMechanism: SWIFT
+                  debitAccount:
+                    accountIdentification: "123456789"
+                    bankCode: "123-456"
+                    accountName: "Corporate Account"
+                  creditAccount:
+                    accountIdentification: "987654321"
+                    bankCode: "BLOCKEDXX"
+                    accountName: "Blocked Country Entity"
+                  remittanceInformation: "Payment to blocked country - should fail"
+                  internationalWireData:
+                    wireType: COMMERCIAL_PAYMENT
+                    priority: NORMAL
+                    purposeCode: "TRADE"
+                    instructionId: "INTL123457"
+                    endToEndId: "E2E987655"
+                    chargeBearer: SHARED
+                    correspondentBankDetails:
+                      correspondentBIC: "BLOCKEDXX"
+                      correspondentName: "Blocked Country Bank"
+                      correspondentAccount: "400123457"
+                    beneficiaryBankDetails:
+                      beneficiaryBIC: "BLOCKEDXX"
+                      beneficiaryBankName: "Blocked Bank"
+                      beneficiaryBankAddress: "BLOCKED Country"
+                    regulatoryReporting:
+                      reportingCode: "TRADE"
+                      reportingDescription: "Trade payment to blocked entity"
+      responses:
+        '201':
+          description: International wire transfer initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitiateInternationalWirePaymentResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /payment-initiation/international-wires/{paymentId}/update:
+    put:
+      summary: Update International Wire Transfer
+      description: Update an existing international wire transfer before processing
+      operationId: updateInternationalWirePayment
+      tags:
+        - International Wire Transfers
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Payment instruction reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInternationalWirePaymentRequest'
+      responses:
+        '200':
+          description: International wire transfer updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateInternationalWirePaymentResponse'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /payment-initiation/international-wires/{paymentId}/request:
+    post:
+      summary: Submit International Wire Transfer for processing
+      description: Submit international wire transfer for processing or authorization
+      operationId: requestInternationalWirePayment
+      tags:
+        - International Wire Transfers
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Payment instruction reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestInternationalWirePaymentRequest'
+      responses:
+        '200':
+          description: International wire transfer request processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestInternationalWirePaymentResponse'
+
+  /payment-initiation/international-wires/{paymentId}/retrieve:
+    get:
+      summary: Retrieve International Wire Transfer
+      description: Get international wire transfer details and current status
+      operationId: retrieveInternationalWirePayment
+      tags:
+        - International Wire Transfers
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Payment instruction reference
+      responses:
+        '200':
+          description: International wire transfer details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveInternationalWirePaymentResponse'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /payment-initiation/international-wires/{paymentId}/control:
+    put:
+      summary: Control International Wire Transfer
+      description: Cancel, suspend, or resume international wire transfer execution
+      operationId: controlInternationalWirePayment
+      tags:
+        - International Wire Transfers
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Payment instruction reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ControlInternationalWirePaymentRequest'
+      responses:
+        '200':
+          description: International wire transfer control action performed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlInternationalWirePaymentResponse'
+
+  /payment-initiation/international-wires/{paymentId}/exchange:
+    post:
+      summary: Exchange International Wire Transfer
+      description: Handle status updates and notifications for international wire transfer
+      operationId: exchangeInternationalWirePayment
+      tags:
+        - International Wire Transfers
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Payment instruction reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExchangeInternationalWirePaymentRequest'
+      responses:
+        '200':
+          description: International wire transfer exchange processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeInternationalWirePaymentResponse'
 
 components:
   schemas:
@@ -705,6 +1445,745 @@ components:
           type: string
           format: date-time
 
+    # BECS Payment Schemas
+    InitiateBECSPaymentRequest:
+      type: object
+      required:
+        - paymentInstructionType
+        - paymentInstructionAmount
+        - paymentMechanism
+        - debitAccount
+        - creditAccount
+        - becsData
+      properties:
+        paymentInstructionType:
+          type: string
+          enum: [BECS_DIRECT_ENTRY]
+        paymentInstructionAmount:
+          $ref: '#/components/schemas/MonetaryAmount'
+        paymentMechanism:
+          type: string
+          enum: [BECS]
+        debitAccount:
+          $ref: '#/components/schemas/AccountReference'
+        creditAccount:
+          $ref: '#/components/schemas/AccountReference'
+        remittanceInformation:
+          type: string
+        becsData:
+          type: object
+          required:
+            - transactionCode
+            - processingDay
+            - lodgementReference
+            - remitterName
+            - directEntryUserId
+            - apcsNumber
+            - userSuppliedDescription
+          properties:
+            transactionCode:
+              type: string
+              enum: ["13", "50", "51", "52", "53", "54", "55", "56", "57"]
+            processingDay:
+              type: string
+              enum: [SAME_DAY, NEXT_DAY, SPECIFIED_DATE]
+            lodgementReference:
+              type: string
+              maxLength: 18
+            remitterName:
+              type: string
+              maxLength: 16
+            directEntryUserId:
+              type: string
+              minLength: 6
+              maxLength: 6
+            apcsNumber:
+              type: string
+              pattern: '^\d{6}$'
+            userSuppliedDescription:
+              type: string
+
+    InitiateBECSPaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        becsPaymentInstruction:
+          type: object
+
+    UpdateBECSPaymentRequest:
+      type: object
+      properties:
+        paymentInstructionAmount:
+          $ref: '#/components/schemas/MonetaryAmount'
+        remittanceInformation:
+          type: string
+        becsData:
+          type: object
+          properties:
+            processingDay:
+              type: string
+              enum: [SAME_DAY, NEXT_DAY, SPECIFIED_DATE]
+            lodgementReference:
+              type: string
+
+    UpdateBECSPaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        becsPaymentInstruction:
+          type: object
+
+    RetrieveBECSPaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        becsPaymentInstruction:
+          type: object
+
+    # BPAY Payment Schemas
+    InitiateBPAYPaymentRequest:
+      type: object
+      required:
+        - paymentInstructionType
+        - paymentInstructionAmount
+        - paymentMechanism
+        - debitAccount
+        - creditAccount
+        - bpayData
+        - bpayReference
+      properties:
+        paymentInstructionType:
+          type: string
+          enum: [BPAY_PAYMENT]
+        paymentInstructionAmount:
+          $ref: '#/components/schemas/MonetaryAmount'
+        paymentMechanism:
+          type: string
+          enum: [BPAY]
+        debitAccount:
+          $ref: '#/components/schemas/AccountReference'
+        creditAccount:
+          $ref: '#/components/schemas/AccountReference'
+        remittanceInformation:
+          type: string
+        bpayData:
+          type: object
+          required:
+            - transactionType
+            - paymentMethod
+            - customerReferenceNumber
+          properties:
+            transactionType:
+              type: string
+              enum: [BILL_PAYMENT, REFUND, REVERSAL, ADJUSTMENT]
+            paymentMethod:
+              type: string
+              enum: [INTERNET_BANKING, PHONE_BANKING, ATM, BRANCH, MOBILE_APP]
+            customerReferenceNumber:
+              type: string
+              maxLength: 20
+            invoiceNumber:
+              type: string
+            accountNumber:
+              type: string
+            paymentNarrative:
+              type: string
+        bpayReference:
+          type: object
+          required:
+            - billerCode
+            - referenceNumber
+          properties:
+            billerCode:
+              type: string
+              pattern: '^\d{6}$'
+            referenceNumber:
+              type: string
+            billerName:
+              type: string
+
+    InitiateBPAYPaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        bpayPaymentInstruction:
+          type: object
+        bpayValidationResult:
+          type: object
+
+    UpdateBPAYPaymentRequest:
+      type: object
+      properties:
+        paymentInstructionAmount:
+          $ref: '#/components/schemas/MonetaryAmount'
+        remittanceInformation:
+          type: string
+        bpayData:
+          type: object
+          properties:
+            customerReferenceNumber:
+              type: string
+            paymentNarrative:
+              type: string
+
+    UpdateBPAYPaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        bpayPaymentInstruction:
+          type: object
+
+    RetrieveBPAYPaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        bpayPaymentInstruction:
+          type: object
+
+    # Direct Debit Schemas
+    InitiateDirectDebitPaymentRequest:
+      type: object
+      required:
+        - paymentInstructionType
+        - paymentInstructionAmount
+        - paymentMechanism
+        - debitAccount
+        - creditAccount
+        - directDebitData
+      properties:
+        paymentInstructionType:
+          type: string
+          enum: [DIRECT_DEBIT]
+        paymentInstructionAmount:
+          $ref: '#/components/schemas/MonetaryAmount'
+        paymentMechanism:
+          type: string
+          enum: [DIRECT_DEBIT]
+        debitAccount:
+          $ref: '#/components/schemas/AccountReference'
+        creditAccount:
+          $ref: '#/components/schemas/AccountReference'
+        remittanceInformation:
+          type: string
+        directDebitData:
+          type: object
+          required:
+            - mandateReference
+            - directDebitType
+            - frequency
+            - firstDebitDate
+            - authorisationMethod
+            - creditorReference
+            - creditorName
+            - debtorReference
+            - mandateDescription
+          properties:
+            mandateReference:
+              type: string
+            directDebitType:
+              type: string
+              enum: [RECURRING, ONE_OFF, VARIABLE, INSTALMENT]
+            frequency:
+              type: string
+              enum: [WEEKLY, FORTNIGHTLY, MONTHLY, QUARTERLY, SEMI_ANNUALLY, ANNUALLY, AD_HOC]
+            firstDebitDate:
+              type: string
+              format: date
+            numberOfPayments:
+              type: integer
+            maximumAmount:
+              $ref: '#/components/schemas/MonetaryAmount'
+            variableAmountAllowed:
+              type: boolean
+            advanceNotificationDays:
+              type: integer
+              minimum: 1
+              maximum: 30
+            authorisationMethod:
+              type: string
+              enum: [ONLINE, PAPER, PHONE, VERBAL]
+            creditorReference:
+              type: string
+            creditorName:
+              type: string
+            debtorReference:
+              type: string
+            mandateDescription:
+              type: string
+
+    InitiateDirectDebitPaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        directDebitPaymentInstruction:
+          type: object
+
+    UpdateDirectDebitPaymentRequest:
+      type: object
+      properties:
+        paymentInstructionAmount:
+          $ref: '#/components/schemas/MonetaryAmount'
+        remittanceInformation:
+          type: string
+        directDebitData:
+          type: object
+          properties:
+            numberOfPayments:
+              type: integer
+            maximumAmount:
+              $ref: '#/components/schemas/MonetaryAmount'
+            advanceNotificationDays:
+              type: integer
+            mandateDescription:
+              type: string
+
+    UpdateDirectDebitPaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        directDebitPaymentInstruction:
+          type: object
+
+    RetrieveDirectDebitPaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        directDebitPaymentInstruction:
+          type: object
+
+    # Domestic Wire Transfer Schemas
+    InitiateDomesticWirePaymentRequest:
+      type: object
+      required:
+        - paymentInstructionType
+        - paymentInstructionAmount
+        - paymentMechanism
+        - debitAccount
+        - creditAccount
+        - domesticWireData
+      properties:
+        paymentInstructionType:
+          type: string
+          enum: [DOMESTIC_WIRE]
+        paymentInstructionAmount:
+          $ref: '#/components/schemas/MonetaryAmount'
+        paymentMechanism:
+          type: string
+          enum: [RTGS]
+        debitAccount:
+          $ref: '#/components/schemas/AccountReference'
+        creditAccount:
+          $ref: '#/components/schemas/AccountReference'
+        remittanceInformation:
+          type: string
+        domesticWireData:
+          type: object
+          required:
+            - wireType
+            - priority
+            - settlementMethod
+            - instructionId
+            - endToEndId
+            - chargeBearer
+          properties:
+            wireType:
+              type: string
+              enum: [HIGH_VALUE, COMMERCIAL_PAYMENT, TREASURY_PAYMENT]
+            priority:
+              type: string
+              enum: [URGENT, NORMAL, DEFERRED]
+            settlementMethod:
+              type: string
+              enum: [RTGS, DEFERRED_NET_SETTLEMENT]
+            executionDate:
+              type: string
+              format: date
+            valueDate:
+              type: string
+              format: date
+            instructionId:
+              type: string
+            endToEndId:
+              type: string
+            chargeBearer:
+              type: string
+              enum: [SHARED, DEBTOR, CREDITOR]
+
+    InitiateDomesticWirePaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        domesticWirePaymentInstruction:
+          type: object
+
+    UpdateDomesticWirePaymentRequest:
+      type: object
+      properties:
+        paymentInstructionAmount:
+          $ref: '#/components/schemas/MonetaryAmount'
+        remittanceInformation:
+          type: string
+        domesticWireData:
+          type: object
+          properties:
+            priority:
+              type: string
+              enum: [URGENT, NORMAL, DEFERRED]
+            executionDate:
+              type: string
+              format: date
+            valueDate:
+              type: string
+              format: date
+
+    UpdateDomesticWirePaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        domesticWirePaymentInstruction:
+          type: object
+
+    RequestDomesticWirePaymentRequest:
+      type: object
+      required:
+        - requestType
+      properties:
+        requestType:
+          type: string
+          enum: [SUBMIT, AUTHORIZE, PROCESS]
+        requestDescription:
+          type: string
+
+    RequestDomesticWirePaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        domesticWirePaymentInstruction:
+          type: object
+
+    RetrieveDomesticWirePaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        domesticWirePaymentInstruction:
+          type: object
+
+    ControlDomesticWirePaymentRequest:
+      type: object
+      required:
+        - controlActionType
+      properties:
+        controlActionType:
+          type: string
+          enum: [SUSPEND, RESUME, CANCEL, TERMINATE]
+        controlActionDescription:
+          type: string
+        controlActionReason:
+          type: string
+
+    ControlDomesticWirePaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        domesticWirePaymentInstruction:
+          type: object
+
+    ExchangeDomesticWirePaymentRequest:
+      type: object
+      required:
+        - exchangeActionType
+      properties:
+        exchangeActionType:
+          type: string
+          enum: [ACCEPT, REJECT, RETURN]
+        exchangeActionDescription:
+          type: string
+
+    ExchangeDomesticWirePaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        domesticWirePaymentInstruction:
+          type: object
+
+    # International Wire Transfer Schemas
+    InitiateInternationalWirePaymentRequest:
+      type: object
+      required:
+        - paymentInstructionType
+        - paymentInstructionAmount
+        - paymentMechanism
+        - debitAccount
+        - creditAccount
+        - internationalWireData
+      properties:
+        paymentInstructionType:
+          type: string
+          enum: [INTERNATIONAL_WIRE]
+        paymentInstructionAmount:
+          $ref: '#/components/schemas/MonetaryAmount'
+        paymentMechanism:
+          type: string
+          enum: [SWIFT]
+        debitAccount:
+          $ref: '#/components/schemas/AccountReference'
+        creditAccount:
+          $ref: '#/components/schemas/AccountReference'
+        remittanceInformation:
+          type: string
+        internationalWireData:
+          type: object
+          required:
+            - wireType
+            - priority
+            - purposeCode
+            - instructionId
+            - endToEndId
+            - chargeBearer
+            - correspondentBankDetails
+            - beneficiaryBankDetails
+          properties:
+            wireType:
+              type: string
+              enum: [COMMERCIAL_PAYMENT, TREASURY_PAYMENT, TRADE_FINANCE, CORRESPONDENT_BANKING]
+            priority:
+              type: string
+              enum: [URGENT, NORMAL]
+            purposeCode:
+              type: string
+              enum: [TRADE, SERVICES, INVESTMENT, LOAN, SALARY, PENSION, OTHER]
+            instructionId:
+              type: string
+            endToEndId:
+              type: string
+            chargeBearer:
+              type: string
+              enum: [SHARED, DEBTOR, CREDITOR]
+            correspondentBankDetails:
+              type: object
+              properties:
+                correspondentBIC:
+                  type: string
+                correspondentName:
+                  type: string
+                correspondentAccount:
+                  type: string
+            beneficiaryBankDetails:
+              type: object
+              properties:
+                beneficiaryBIC:
+                  type: string
+                beneficiaryBankName:
+                  type: string
+                beneficiaryBankAddress:
+                  type: string
+            regulatoryReporting:
+              type: object
+              properties:
+                reportingCode:
+                  type: string
+                reportingDescription:
+                  type: string
+
+    InitiateInternationalWirePaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        internationalWirePaymentInstruction:
+          type: object
+
+    UpdateInternationalWirePaymentRequest:
+      type: object
+      properties:
+        paymentInstructionAmount:
+          $ref: '#/components/schemas/MonetaryAmount'
+        remittanceInformation:
+          type: string
+        internationalWireData:
+          type: object
+          properties:
+            priority:
+              type: string
+              enum: [URGENT, NORMAL]
+            purposeCode:
+              type: string
+              enum: [TRADE, SERVICES, INVESTMENT, LOAN, SALARY, PENSION, OTHER]
+
+    UpdateInternationalWirePaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        internationalWirePaymentInstruction:
+          type: object
+
+    RequestInternationalWirePaymentRequest:
+      type: object
+      required:
+        - requestType
+      properties:
+        requestType:
+          type: string
+          enum: [SUBMIT, AUTHORIZE, PROCESS]
+        requestDescription:
+          type: string
+
+    RequestInternationalWirePaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        internationalWirePaymentInstruction:
+          type: object
+
+    RetrieveInternationalWirePaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        internationalWirePaymentInstruction:
+          type: object
+
+    ControlInternationalWirePaymentRequest:
+      type: object
+      required:
+        - controlActionType
+      properties:
+        controlActionType:
+          type: string
+          enum: [SUSPEND, RESUME, CANCEL, TERMINATE]
+        controlActionDescription:
+          type: string
+        controlActionReason:
+          type: string
+
+    ControlInternationalWirePaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        internationalWirePaymentInstruction:
+          type: object
+
+    ExchangeInternationalWirePaymentRequest:
+      type: object
+      required:
+        - exchangeActionType
+      properties:
+        exchangeActionType:
+          type: string
+          enum: [ACCEPT, REJECT, RETURN]
+        exchangeActionDescription:
+          type: string
+
+    ExchangeInternationalWirePaymentResponse:
+      type: object
+      properties:
+        paymentInstructionReference:
+          type: string
+        paymentInstructionInstanceReference:
+          type: string
+        paymentInstruction:
+          type: object
+        internationalWirePaymentInstruction:
+          type: object
+
     ErrorResponse:
       type: object
       properties:
@@ -740,5 +2219,15 @@ tags:
     description: System health and information endpoints
   - name: NPP Payments
     description: New Payments Platform operations
+  - name: BECS Payments
+    description: Bulk Electronic Clearing System operations
+  - name: BPAY Payments
+    description: BPAY bill payment operations
+  - name: Direct Debit
+    description: Direct debit and mandate operations
+  - name: Domestic Wire Transfers
+    description: High-value domestic RTGS payments
+  - name: International Wire Transfers
+    description: Cross-border SWIFT payments
   - name: Testing
     description: Test scenarios and utilities

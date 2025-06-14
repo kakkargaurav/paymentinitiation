@@ -182,13 +182,124 @@ Content-Type: application/json
 GET /npp-payments?status=COMPLETED&limit=10&offset=0
 ```
 
+### BECS Payments
+
+#### Initiate BECS Payment
+```http
+POST /becs-payments/initiate
+Content-Type: application/json
+
+{
+  "paymentInstructionType": "BECS_DIRECT_ENTRY",
+  "paymentInstructionAmount": {
+    "amount": "500.00",
+    "currency": "AUD"
+  },
+  "paymentMechanism": "BECS",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "Company Ltd"
+  },
+  "creditAccount": {
+    "accountIdentification": "987654321",
+    "bankCode": "654-321",
+    "accountName": "Employee Name"
+  },
+  "remittanceInformation": "Salary payment",
+  "becsData": {
+    "transactionCode": "50",
+    "processingDay": "NEXT_DAY",
+    "lodgementReference": "PAYROLL_2024",
+    "remitterName": "Company Ltd",
+    "directEntryUserId": "123456",
+    "apcsNumber": "123456",
+    "userSuppliedDescription": "Payroll payments"
+  }
+}
+```
+
+### BPAY Payments
+
+#### Initiate BPAY Payment
+```http
+POST /bpay-payments/initiate
+Content-Type: application/json
+
+{
+  "paymentInstructionType": "BPAY_PAYMENT",
+  "paymentInstructionAmount": {
+    "amount": "75.50",
+    "currency": "AUD"
+  },
+  "paymentMechanism": "BPAY",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "Customer Name"
+  },
+  "creditAccount": {
+    "accountIdentification": "123456",
+    "accountName": "Energy Australia"
+  },
+  "remittanceInformation": "Electricity bill payment",
+  "bpayData": {
+    "transactionType": "BILL_PAYMENT",
+    "paymentMethod": "INTERNET_BANKING",
+    "customerReferenceNumber": "987654321098"
+  },
+  "bpayReference": {
+    "billerCode": "123456",
+    "referenceNumber": "987654321098",
+    "billerName": "Energy Australia"
+  }
+}
+```
+
+### Direct Debit Payments
+
+#### Initiate Direct Debit
+```http
+POST /direct-debit/initiate
+Content-Type: application/json
+
+{
+  "paymentInstructionType": "DIRECT_DEBIT",
+  "paymentInstructionAmount": {
+    "amount": "29.99",
+    "currency": "AUD"
+  },
+  "paymentMechanism": "DIRECT_DEBIT",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "Customer Name"
+  },
+  "creditAccount": {
+    "accountIdentification": "555666777",
+    "bankCode": "555-666",
+    "accountName": "Subscription Service Pty Ltd"
+  },
+  "remittanceInformation": "Monthly subscription",
+  "directDebitData": {
+    "mandateReference": "SUB_12345",
+    "directDebitType": "RECURRING",
+    "frequency": "MONTHLY",
+    "firstDebitDate": "2025-01-15",
+    "numberOfPayments": 12,
+    "authorisationMethod": "ONLINE",
+    "creditorReference": "CRED_001",
+    "creditorName": "Subscription Service Pty Ltd",
+    "debtorReference": "DEBT_001",
+    "mandateDescription": "Monthly subscription payment"
+  }
+}
+```
+
 ### Other Payment Types
 
 The following payment types follow the same BIAN operation pattern but are currently returning `501 Not Implemented`:
 
-- `/becs-payments/*` - BECS Direct Entry payments
-- `/bpay-payments/*` - BPAY bill payments  
-- `/direct-debit/*` - Direct debit collections
 - `/domestic-wires/*` - Domestic wire transfers
 - `/international-wires/*` - International wire transfers
 

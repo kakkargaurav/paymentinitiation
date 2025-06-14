@@ -5,11 +5,21 @@
 
 import { Router } from 'express';
 import { NPPPaymentController } from '../controllers/npp-payment.controller';
+import { BECSPaymentController } from '../controllers/becs-payment.controller';
+import { BPAYPaymentController } from '../controllers/bpay-payment.controller';
+import { DirectDebitPaymentController } from '../controllers/direct-debit-payment.controller';
+import { DomesticWirePaymentController } from '../controllers/domestic-wire-payment.controller';
+import { InternationalWirePaymentController } from '../controllers/international-wire-payment.controller';
 
 const router = Router();
 
 // Initialize controllers
 const nppController = new NPPPaymentController();
+const becsController = new BECSPaymentController();
+const bpayController = new BPAYPaymentController();
+const directDebitController = new DirectDebitPaymentController();
+const domesticWireController = new DomesticWirePaymentController();
+const internationalWireController = new InternationalWirePaymentController();
 
 // NPP Payment Routes
 const nppRoutes = Router();
@@ -30,328 +40,83 @@ nppRoutes.post('/test-scenarios/:scenarioIndex/generate', nppController.generate
 // Mount NPP routes
 router.use('/npp-payments', nppRoutes);
 
-// BECS Payment Routes (placeholder structure for future implementation)
+// BECS Payment Routes
 const becsRoutes = Router();
-becsRoutes.post('/initiate', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'BECS payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-becsRoutes.put('/:paymentId/update', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'BECS payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-becsRoutes.post('/:paymentId/request', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'BECS payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-becsRoutes.get('/:paymentId/retrieve', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'BECS payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-becsRoutes.put('/:paymentId/control', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'BECS payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-becsRoutes.post('/:paymentId/exchange', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'BECS payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
+
+// BIAN Standard Operations for BECS Payments
+becsRoutes.post('/initiate', becsController.initiatePayment);
+becsRoutes.put('/:paymentId/update', becsController.updatePayment);
+becsRoutes.post('/:paymentId/request', becsController.requestPayment);
+becsRoutes.get('/:paymentId/retrieve', becsController.retrievePayment);
+becsRoutes.put('/:paymentId/control', becsController.controlPayment);
+becsRoutes.post('/:paymentId/exchange', becsController.exchangePayment);
+
+// Query endpoints
+becsRoutes.get('/', becsController.queryPayments);
 
 router.use('/becs-payments', becsRoutes);
 
-// BPAY Payment Routes (placeholder structure for future implementation)
+// BPAY Payment Routes
 const bpayRoutes = Router();
-bpayRoutes.post('/initiate', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'BPAY payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-bpayRoutes.put('/:paymentId/update', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'BPAY payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-bpayRoutes.post('/:paymentId/request', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'BPAY payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-bpayRoutes.get('/:paymentId/retrieve', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'BPAY payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-bpayRoutes.put('/:paymentId/control', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'BPAY payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-bpayRoutes.post('/:paymentId/exchange', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'BPAY payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
+
+// BIAN Standard Operations for BPAY Payments
+bpayRoutes.post('/initiate', bpayController.initiatePayment);
+bpayRoutes.put('/:paymentId/update', bpayController.updatePayment);
+bpayRoutes.post('/:paymentId/request', bpayController.requestPayment);
+bpayRoutes.get('/:paymentId/retrieve', bpayController.retrievePayment);
+bpayRoutes.put('/:paymentId/control', bpayController.controlPayment);
+bpayRoutes.post('/:paymentId/exchange', bpayController.exchangePayment);
+
+// Query endpoints
+bpayRoutes.get('/', bpayController.queryPayments);
 
 router.use('/bpay-payments', bpayRoutes);
 
-// Direct Debit Payment Routes (placeholder structure for future implementation)
+// Direct Debit Payment Routes
 const directDebitRoutes = Router();
-directDebitRoutes.post('/initiate', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'Direct Debit payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-directDebitRoutes.put('/:paymentId/update', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'Direct Debit payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-directDebitRoutes.post('/:paymentId/request', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'Direct Debit payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-directDebitRoutes.get('/:paymentId/retrieve', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'Direct Debit payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-directDebitRoutes.put('/:paymentId/control', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'Direct Debit payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-directDebitRoutes.post('/:paymentId/exchange', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'Direct Debit payment endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
+
+// BIAN Standard Operations for Direct Debit Payments
+directDebitRoutes.post('/initiate', directDebitController.initiatePayment);
+directDebitRoutes.put('/:paymentId/update', directDebitController.updatePayment);
+directDebitRoutes.post('/:paymentId/request', directDebitController.requestPayment);
+directDebitRoutes.get('/:paymentId/retrieve', directDebitController.retrievePayment);
+directDebitRoutes.put('/:paymentId/control', directDebitController.controlPayment);
+directDebitRoutes.post('/:paymentId/exchange', directDebitController.exchangePayment);
+
+// Query endpoints
+directDebitRoutes.get('/', directDebitController.queryPayments);
 
 router.use('/direct-debit', directDebitRoutes);
 
-// Domestic Wire Transfer Routes (placeholder structure for future implementation)
+// Domestic Wire Transfer Routes
 const domesticWireRoutes = Router();
-domesticWireRoutes.post('/initiate', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'Domestic Wire transfer endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-domesticWireRoutes.put('/:paymentId/update', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'Domestic Wire transfer endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-domesticWireRoutes.post('/:paymentId/request', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'Domestic Wire transfer endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-domesticWireRoutes.get('/:paymentId/retrieve', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'Domestic Wire transfer endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-domesticWireRoutes.put('/:paymentId/control', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'Domestic Wire transfer endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-domesticWireRoutes.post('/:paymentId/exchange', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'Domestic Wire transfer endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
+
+// BIAN Standard Operations for Domestic Wire Transfers
+domesticWireRoutes.post('/initiate', domesticWireController.initiatePayment);
+domesticWireRoutes.put('/:paymentId/update', domesticWireController.updatePayment);
+domesticWireRoutes.post('/:paymentId/request', domesticWireController.requestPayment);
+domesticWireRoutes.get('/:paymentId/retrieve', domesticWireController.retrievePayment);
+domesticWireRoutes.put('/:paymentId/control', domesticWireController.controlPayment);
+domesticWireRoutes.post('/:paymentId/exchange', domesticWireController.exchangePayment);
+
+// Query endpoints
+domesticWireRoutes.get('/', domesticWireController.queryPayments);
 
 router.use('/domestic-wires', domesticWireRoutes);
 
-// International Wire Transfer Routes (placeholder structure for future implementation)
+// International Wire Transfer Routes
 const internationalWireRoutes = Router();
-internationalWireRoutes.post('/initiate', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'International Wire transfer endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-internationalWireRoutes.put('/:paymentId/update', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'International Wire transfer endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-internationalWireRoutes.post('/:paymentId/request', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'International Wire transfer endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-internationalWireRoutes.get('/:paymentId/retrieve', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'International Wire transfer endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-internationalWireRoutes.put('/:paymentId/control', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'International Wire transfer endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
-internationalWireRoutes.post('/:paymentId/exchange', (req, res) => {
-  res.status(501).json({
-    success: false,
-    errors: [{
-      errorCode: 'NOT_IMPLEMENTED',
-      errorDescription: 'International Wire transfer endpoints are not yet implemented'
-    }],
-    timestamp: new Date().toISOString()
-  });
-});
+
+// BIAN Standard Operations for International Wire Transfers
+internationalWireRoutes.post('/initiate', internationalWireController.initiatePayment);
+internationalWireRoutes.put('/:paymentId/update', internationalWireController.updatePayment);
+internationalWireRoutes.post('/:paymentId/request', internationalWireController.requestPayment);
+internationalWireRoutes.get('/:paymentId/retrieve', internationalWireController.retrievePayment);
+internationalWireRoutes.put('/:paymentId/control', internationalWireController.controlPayment);
+internationalWireRoutes.post('/:paymentId/exchange', internationalWireController.exchangePayment);
+
+// Query endpoints
+internationalWireRoutes.get('/', internationalWireController.queryPayments);
 
 router.use('/international-wires', internationalWireRoutes);
 
@@ -375,7 +140,12 @@ router.get('/health', (req, res) => {
       ],
       implementedPaymentTypes: [
         'NPP_INSTANT',
-        'NPP_PAYID'
+        'NPP_PAYID',
+        'BECS_DIRECT_ENTRY',
+        'BPAY_PAYMENT',
+        'DIRECT_DEBIT',
+        'DOMESTIC_WIRE',
+        'INTERNATIONAL_WIRE'
       ]
     },
     timestamp: new Date().toISOString()

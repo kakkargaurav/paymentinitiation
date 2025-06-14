@@ -16,6 +16,10 @@ GET {{baseUrl}}{{basePath}}/npp-payments/test-scenarios
 ### Generate Test Data for Scenario 0 (Amount < $100 - Success)
 POST {{baseUrl}}{{basePath}}/npp-payments/test-scenarios/0/generate
 
+###############################################################################
+### NPP PAYMENTS
+###############################################################################
+
 ### Initiate NPP Instant Payment (Success - Amount < $100)
 POST {{baseUrl}}{{basePath}}/npp-payments/initiate
 Content-Type: application/json
@@ -165,12 +169,12 @@ X-Correlation-ID: test-npp-005
   }
 }
 
-### Retrieve Payment (use payment ID from previous response)
-GET {{baseUrl}}{{basePath}}/npp-payments/{paymentId}/retrieve
+### NPP - Retrieve Payment (use payment ID from previous response)
+GET {{baseUrl}}{{basePath}}/npp-payments/NPP-ABC123/retrieve
 X-Correlation-ID: test-retrieve-001
 
-### Update Payment (use payment ID from previous response)
-PUT {{baseUrl}}{{basePath}}/npp-payments/{paymentId}/update
+### NPP - Update Payment (use payment ID from previous response)
+PUT {{baseUrl}}{{basePath}}/npp-payments/NPP-ABC123/update
 Content-Type: application/json
 X-Correlation-ID: test-update-001
 
@@ -182,8 +186,8 @@ X-Correlation-ID: test-update-001
   "remittanceInformation": "Updated payment reference"
 }
 
-### Submit Payment for Processing (use payment ID from previous response)
-POST {{baseUrl}}{{basePath}}/npp-payments/{paymentId}/request
+### NPP - Submit Payment for Processing (use payment ID from previous response)
+POST {{baseUrl}}{{basePath}}/npp-payments/NPP-ABC123/request
 Content-Type: application/json
 X-Correlation-ID: test-request-001
 
@@ -192,8 +196,8 @@ X-Correlation-ID: test-request-001
   "requestDescription": "Submit payment for immediate processing"
 }
 
-### Cancel Payment (use payment ID from previous response)
-PUT {{baseUrl}}{{basePath}}/npp-payments/{paymentId}/control
+### NPP - Cancel Payment (use payment ID from previous response)
+PUT {{baseUrl}}{{basePath}}/npp-payments/NPP-ABC123/control
 Content-Type: application/json
 X-Correlation-ID: test-control-001
 
@@ -201,6 +205,16 @@ X-Correlation-ID: test-control-001
   "controlActionType": "CANCEL",
   "controlActionDescription": "Customer requested cancellation",
   "controlActionReason": "Duplicate payment"
+}
+
+### NPP - Exchange Payment (use payment ID from previous response)
+POST {{baseUrl}}{{basePath}}/npp-payments/NPP-ABC123/exchange
+Content-Type: application/json
+X-Correlation-ID: test-exchange-001
+
+{
+  "exchangeActionType": "ACCEPT",
+  "exchangeActionDescription": "Payment accepted by external system"
 }
 
 ### Query NPP Payments
@@ -211,21 +225,666 @@ X-Correlation-ID: test-query-001
 GET {{baseUrl}}{{basePath}}/npp-payments?status=COMPLETED&limit=5
 X-Correlation-ID: test-query-002
 
-### Test BECS Endpoint (Should return 501 Not Implemented)
+###############################################################################
+### BECS PAYMENTS
+###############################################################################
+
+### Initiate BECS Payment (Success)
 POST {{baseUrl}}{{basePath}}/becs-payments/initiate
 Content-Type: application/json
+X-Correlation-ID: test-becs-001
 
 {
-  "test": "data"
+  "paymentInstructionType": "BECS_DIRECT_ENTRY",
+  "paymentInstructionAmount": {
+    "amount": "500.00",
+    "currency": "AUD"
+  },
+  "paymentMechanism": "BECS",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "Company Ltd"
+  },
+  "creditAccount": {
+    "accountIdentification": "987654321",
+    "bankCode": "654-321",
+    "accountName": "Employee Name"
+  },
+  "remittanceInformation": "Salary payment",
+  "becsData": {
+    "transactionCode": "50",
+    "processingDay": "NEXT_DAY",
+    "lodgementReference": "PAYROLL_2024",
+    "remitterName": "Company Ltd",
+    "directEntryUserId": "123456",
+    "apcsNumber": "123456",
+    "userSuppliedDescription": "Payroll payments"
+  }
 }
 
-### Test BPAY Endpoint (Should return 501 Not Implemented)
+### BECS - Retrieve Payment
+GET {{baseUrl}}{{basePath}}/becs-payments/BECS-XYZ789/retrieve
+X-Correlation-ID: test-becs-retrieve-001
+
+### BECS - Update Payment
+PUT {{baseUrl}}{{basePath}}/becs-payments/BECS-XYZ789/update
+Content-Type: application/json
+X-Correlation-ID: test-becs-update-001
+
+{
+  "paymentInstructionAmount": {
+    "amount": "550.00",
+    "currency": "AUD"
+  },
+  "remittanceInformation": "Updated salary payment",
+  "becsData": {
+    "processingDay": "SAME_DAY",
+    "lodgementReference": "PAYROLL_2024_UPD"
+  }
+}
+
+### BECS - Submit Payment for Processing
+POST {{baseUrl}}{{basePath}}/becs-payments/BECS-XYZ789/request
+Content-Type: application/json
+X-Correlation-ID: test-becs-request-001
+
+{
+  "requestType": "SUBMIT",
+  "requestDescription": "Submit BECS payment for batch processing"
+}
+
+### BECS - Control Payment
+PUT {{baseUrl}}{{basePath}}/becs-payments/BECS-XYZ789/control
+Content-Type: application/json
+X-Correlation-ID: test-becs-control-001
+
+{
+  "controlActionType": "SUSPEND",
+  "controlActionDescription": "Suspend payment for review",
+  "controlActionReason": "Compliance check required"
+}
+
+### BECS - Exchange Payment
+POST {{baseUrl}}{{basePath}}/becs-payments/BECS-XYZ789/exchange
+Content-Type: application/json
+X-Correlation-ID: test-becs-exchange-001
+
+{
+  "exchangeActionType": "ACCEPT",
+  "exchangeActionDescription": "Payment accepted by clearing system"
+}
+
+### Query BECS Payments
+GET {{baseUrl}}{{basePath}}/becs-payments?limit=10&offset=0
+X-Correlation-ID: test-becs-query-001
+
+###############################################################################
+### BPAY PAYMENTS
+###############################################################################
+
+### Initiate BPAY Payment (Success)
 POST {{baseUrl}}{{basePath}}/bpay-payments/initiate
 Content-Type: application/json
+X-Correlation-ID: test-bpay-001
 
 {
-  "test": "data"
+  "paymentInstructionType": "BPAY_PAYMENT",
+  "paymentInstructionAmount": {
+    "amount": "75.50",
+    "currency": "AUD"
+  },
+  "paymentMechanism": "BPAY",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "Customer Name"
+  },
+  "creditAccount": {
+    "accountIdentification": "123456",
+    "accountName": "Energy Australia"
+  },
+  "remittanceInformation": "Electricity bill payment",
+  "bpayData": {
+    "transactionType": "BILL_PAYMENT",
+    "paymentMethod": "INTERNET_BANKING",
+    "customerReferenceNumber": "987654321098"
+  },
+  "bpayReference": {
+    "billerCode": "123456",
+    "referenceNumber": "987654321098",
+    "billerName": "Energy Australia"
+  }
 }
+
+### BPAY - Retrieve Payment
+GET {{baseUrl}}{{basePath}}/bpay-payments/BPAY-DEF456/retrieve
+X-Correlation-ID: test-bpay-retrieve-001
+
+### BPAY - Update Payment
+PUT {{baseUrl}}{{basePath}}/bpay-payments/BPAY-DEF456/update
+Content-Type: application/json
+X-Correlation-ID: test-bpay-update-001
+
+{
+  "paymentInstructionAmount": {
+    "amount": "85.50",
+    "currency": "AUD"
+  },
+  "remittanceInformation": "Updated electricity bill payment",
+  "bpayData": {
+    "customerReferenceNumber": "987654321099",
+    "paymentNarrative": "Late payment included"
+  }
+}
+
+### BPAY - Submit Payment for Processing
+POST {{baseUrl}}{{basePath}}/bpay-payments/BPAY-DEF456/request
+Content-Type: application/json
+X-Correlation-ID: test-bpay-request-001
+
+{
+  "requestType": "PROCESS",
+  "requestDescription": "Submit BPAY payment for immediate processing"
+}
+
+### BPAY - Control Payment
+PUT {{baseUrl}}{{basePath}}/bpay-payments/BPAY-DEF456/control
+Content-Type: application/json
+X-Correlation-ID: test-bpay-control-001
+
+{
+  "controlActionType": "CANCEL",
+  "controlActionDescription": "Customer requested cancellation",
+  "controlActionReason": "Bill already paid"
+}
+
+### BPAY - Exchange Payment
+POST {{baseUrl}}{{basePath}}/bpay-payments/BPAY-DEF456/exchange
+Content-Type: application/json
+X-Correlation-ID: test-bpay-exchange-001
+
+{
+  "exchangeActionType": "REJECT",
+  "exchangeActionDescription": "Payment rejected by biller"
+}
+
+### Query BPAY Payments
+GET {{baseUrl}}{{basePath}}/bpay-payments?limit=10&offset=0
+X-Correlation-ID: test-bpay-query-001
+
+###############################################################################
+### DIRECT DEBIT PAYMENTS
+###############################################################################
+
+### Initiate Direct Debit Payment (Success)
+POST {{baseUrl}}{{basePath}}/direct-debit/initiate
+Content-Type: application/json
+X-Correlation-ID: test-dd-001
+
+{
+  "paymentInstructionType": "DIRECT_DEBIT",
+  "paymentInstructionAmount": {
+    "amount": "29.99",
+    "currency": "AUD"
+  },
+  "paymentMechanism": "DIRECT_DEBIT",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "Customer Name"
+  },
+  "creditAccount": {
+    "accountIdentification": "555666777",
+    "bankCode": "555-666",
+    "accountName": "Subscription Service Pty Ltd"
+  },
+  "remittanceInformation": "Monthly subscription",
+  "directDebitData": {
+    "mandateReference": "SUB_12345",
+    "directDebitType": "RECURRING",
+    "frequency": "MONTHLY",
+    "firstDebitDate": "2025-12-15",
+    "numberOfPayments": 12,
+    "authorisationMethod": "ONLINE",
+    "creditorReference": "CRED_001",
+    "creditorName": "Subscription Service Pty Ltd",
+    "debtorReference": "DEBT_001",
+    "mandateDescription": "Monthly subscription payment"
+  }
+}
+
+### Direct Debit - Retrieve Payment
+GET {{baseUrl}}{{basePath}}/direct-debit/DD-GHI789/retrieve
+X-Correlation-ID: test-dd-retrieve-001
+
+### Direct Debit - Update Payment
+PUT {{baseUrl}}{{basePath}}/direct-debit/DD-GHI789/update
+Content-Type: application/json
+X-Correlation-ID: test-dd-update-001
+
+{
+  "paymentInstructionAmount": {
+    "amount": "39.99",
+    "currency": "AUD"
+  },
+  "remittanceInformation": "Updated subscription fee",
+  "directDebitData": {
+    "numberOfPayments": 24,
+    "maximumAmount": {
+      "amount": "50.00",
+      "currency": "AUD"
+    },
+    "advanceNotificationDays": 7,
+    "mandateDescription": "Extended subscription payment plan"
+  }
+}
+
+### Direct Debit - Submit for Processing
+POST {{baseUrl}}{{basePath}}/direct-debit/DD-GHI789/request
+Content-Type: application/json
+X-Correlation-ID: test-dd-request-001
+
+{
+  "requestType": "AUTHORIZE",
+  "requestDescription": "Authorize direct debit mandate"
+}
+
+### Direct Debit - Control Payment
+PUT {{baseUrl}}{{basePath}}/direct-debit/DD-GHI789/control
+Content-Type: application/json
+X-Correlation-ID: test-dd-control-001
+
+{
+  "controlActionType": "SUSPEND",
+  "controlActionDescription": "Suspend direct debit temporarily",
+  "controlActionReason": "Customer requested pause"
+}
+
+### Direct Debit - Exchange Payment
+POST {{baseUrl}}{{basePath}}/direct-debit/DD-GHI789/exchange
+Content-Type: application/json
+X-Correlation-ID: test-dd-exchange-001
+
+{
+  "exchangeActionType": "REJECT",
+  "exchangeActionDescription": "Payment dishonoured",
+  "directDebitExchangeData": {
+    "dishonourReason": "INSUFFICIENT_FUNDS",
+    "dishonourCode": "NSF"
+  }
+}
+
+### Query Direct Debit Payments
+GET {{baseUrl}}{{basePath}}/direct-debit?limit=10&offset=0
+X-Correlation-ID: test-dd-query-001
+
+###############################################################################
+### DOMESTIC WIRE TRANSFERS
+###############################################################################
+
+### Initiate Domestic Wire Transfer (Success)
+POST {{baseUrl}}{{basePath}}/domestic-wires/initiate
+Content-Type: application/json
+X-Correlation-ID: test-dw-001
+
+{
+  "paymentInstructionType": "DOMESTIC_WIRE",
+  "paymentInstructionAmount": {
+    "amount": "50000.00",
+    "currency": "AUD"
+  },
+  "paymentMechanism": "RTGS",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "Corporate Account"
+  },
+  "creditAccount": {
+    "accountIdentification": "987654321",
+    "bankCode": "654-321",
+    "accountName": "Supplier Pty Ltd"
+  },
+  "remittanceInformation": "Invoice payment - urgent",
+  "domesticWireData": {
+    "wireType": "HIGH_VALUE",
+    "priority": "URGENT",
+    "settlementMethod": "RTGS",
+    "executionDate": "2025-12-15",
+    "valueDate": "2025-12-15",
+    "instructionId": "WIRE123456",
+    "endToEndId": "E2E987654",
+    "chargeBearer": "SHARED"
+  }
+}
+
+### Domestic Wire - Retrieve Payment
+GET {{baseUrl}}{{basePath}}/domestic-wires/DWR-JKL012/retrieve
+X-Correlation-ID: test-dw-retrieve-001
+
+### Domestic Wire - Update Payment
+PUT {{baseUrl}}{{basePath}}/domestic-wires/DWR-JKL012/update
+Content-Type: application/json
+X-Correlation-ID: test-dw-update-001
+
+{
+  "paymentInstructionAmount": {
+    "amount": "55000.00",
+    "currency": "AUD"
+  },
+  "remittanceInformation": "Updated invoice payment",
+  "domesticWireData": {
+    "priority": "NORMAL",
+    "executionDate": "2025-12-16",
+    "valueDate": "2025-12-16"
+  }
+}
+
+### Domestic Wire - Submit for Processing
+POST {{baseUrl}}{{basePath}}/domestic-wires/DWR-JKL012/request
+Content-Type: application/json
+X-Correlation-ID: test-dw-request-001
+
+{
+  "requestType": "SUBMIT",
+  "requestDescription": "Submit wire transfer for RTGS processing"
+}
+
+### Domestic Wire - Control Payment
+PUT {{baseUrl}}{{basePath}}/domestic-wires/DWR-JKL012/control
+Content-Type: application/json
+X-Correlation-ID: test-dw-control-001
+
+{
+  "controlActionType": "CANCEL",
+  "controlActionDescription": "Cancel wire transfer",
+  "controlActionReason": "Payment no longer required"
+}
+
+### Domestic Wire - Exchange Payment
+POST {{baseUrl}}{{basePath}}/domestic-wires/DWR-JKL012/exchange
+Content-Type: application/json
+X-Correlation-ID: test-dw-exchange-001
+
+{
+  "exchangeActionType": "ACCEPT",
+  "exchangeActionDescription": "Wire transfer accepted by RTGS system"
+}
+
+### Query Domestic Wire Transfers
+GET {{baseUrl}}{{basePath}}/domestic-wires?limit=10&offset=0
+X-Correlation-ID: test-dw-query-001
+
+###############################################################################
+### INTERNATIONAL WIRE TRANSFERS
+###############################################################################
+
+### Initiate International Wire Transfer (Success)
+POST {{baseUrl}}{{basePath}}/international-wires/initiate
+Content-Type: application/json
+X-Correlation-ID: test-iw-001
+
+{
+  "paymentInstructionType": "INTERNATIONAL_WIRE",
+  "paymentInstructionAmount": {
+    "amount": "25000.00",
+    "currency": "USD"
+  },
+  "paymentMechanism": "SWIFT",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "Corporate Account"
+  },
+  "creditAccount": {
+    "accountIdentification": "987654321",
+    "bankCode": "CHASUS33",
+    "accountName": "Overseas Supplier Inc"
+  },
+  "remittanceInformation": "Trade payment for goods",
+  "internationalWireData": {
+    "wireType": "COMMERCIAL_PAYMENT",
+    "priority": "NORMAL",
+    "purposeCode": "TRADE",
+    "instructionId": "INTL123456",
+    "endToEndId": "E2E987654",
+    "chargeBearer": "SHARED",
+    "correspondentBankDetails": {
+      "correspondentBIC": "CHASUS33",
+      "correspondentName": "JP Morgan Chase Bank",
+      "correspondentAccount": "400123456"
+    },
+    "beneficiaryBankDetails": {
+      "beneficiaryBIC": "CHASUS33",
+      "beneficiaryBankName": "Chase Bank USA",
+      "beneficiaryBankAddress": "New York, NY, USA"
+    },
+    "regulatoryReporting": {
+      "reportingCode": "TRADE",
+      "reportingDescription": "Trade payment"
+    }
+  }
+}
+
+### International Wire Transfer (Compliance Failure - BLOCKED country)
+POST {{baseUrl}}{{basePath}}/international-wires/initiate
+Content-Type: application/json
+X-Correlation-ID: test-iw-002
+
+{
+  "paymentInstructionType": "INTERNATIONAL_WIRE",
+  "paymentInstructionAmount": {
+    "amount": "15000.00",
+    "currency": "USD"
+  },
+  "paymentMechanism": "SWIFT",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "Corporate Account"
+  },
+  "creditAccount": {
+    "accountIdentification": "987654321",
+    "bankCode": "BLOCKEDXX",
+    "accountName": "Blocked Country Entity"
+  },
+  "remittanceInformation": "Payment to blocked country - should fail",
+  "internationalWireData": {
+    "wireType": "COMMERCIAL_PAYMENT",
+    "priority": "NORMAL",
+    "purposeCode": "TRADE",
+    "instructionId": "INTL123457",
+    "endToEndId": "E2E987655",
+    "chargeBearer": "SHARED",
+    "correspondentBankDetails": {
+      "correspondentBIC": "BLOCKEDXX",
+      "correspondentName": "Blocked Country Bank",
+      "correspondentAccount": "400123457"
+    },
+    "beneficiaryBankDetails": {
+      "beneficiaryBIC": "BLOCKEDXX",
+      "beneficiaryBankName": "Blocked Bank",
+      "beneficiaryBankAddress": "BLOCKED Country"
+    },
+    "regulatoryReporting": {
+      "reportingCode": "TRADE",
+      "reportingDescription": "Trade payment to blocked entity"
+    }
+  }
+}
+
+### International Wire - Retrieve Payment
+GET {{baseUrl}}{{basePath}}/international-wires/IWR-MNO345/retrieve
+X-Correlation-ID: test-iw-retrieve-001
+
+### International Wire - Update Payment
+PUT {{baseUrl}}{{basePath}}/international-wires/IWR-MNO345/update
+Content-Type: application/json
+X-Correlation-ID: test-iw-update-001
+
+{
+  "paymentInstructionAmount": {
+    "amount": "27000.00",
+    "currency": "USD"
+  },
+  "remittanceInformation": "Updated trade payment for goods",
+  "internationalWireData": {
+    "priority": "URGENT",
+    "purposeCode": "SERVICES"
+  }
+}
+
+### International Wire - Submit for Processing
+POST {{baseUrl}}{{basePath}}/international-wires/IWR-MNO345/request
+Content-Type: application/json
+X-Correlation-ID: test-iw-request-001
+
+{
+  "requestType": "AUTHORIZE",
+  "requestDescription": "Submit international wire for compliance review and SWIFT processing"
+}
+
+### International Wire - Control Payment
+PUT {{baseUrl}}{{basePath}}/international-wires/IWR-MNO345/control
+Content-Type: application/json
+X-Correlation-ID: test-iw-control-001
+
+{
+  "controlActionType": "SUSPEND",
+  "controlActionDescription": "Suspend for compliance review",
+  "controlActionReason": "Additional documentation required"
+}
+
+### International Wire - Exchange Payment
+POST {{baseUrl}}{{basePath}}/international-wires/IWR-MNO345/exchange
+Content-Type: application/json
+X-Correlation-ID: test-iw-exchange-001
+
+{
+  "exchangeActionType": "RETURN",
+  "exchangeActionDescription": "Payment returned by correspondent bank"
+}
+
+### Query International Wire Transfers
+GET {{baseUrl}}{{basePath}}/international-wires?limit=10&offset=0
+X-Correlation-ID: test-iw-query-001
+
+###############################################################################
+### ERROR SCENARIOS AND EDGE CASES
+###############################################################################
+
+### Test Invalid Payment Type
+POST {{baseUrl}}{{basePath}}/npp-payments/initiate
+Content-Type: application/json
+X-Correlation-ID: test-error-001
+
+{
+  "paymentInstructionType": "INVALID_TYPE",
+  "paymentInstructionAmount": {
+    "amount": "100.00",
+    "currency": "AUD"
+  },
+  "paymentMechanism": "NPP",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "John Doe"
+  },
+  "creditAccount": {
+    "accountIdentification": "987654321",
+    "bankCode": "654-321",
+    "accountName": "Jane Smith"
+  }
+}
+
+### Test Missing Required Fields
+POST {{baseUrl}}{{basePath}}/becs-payments/initiate
+Content-Type: application/json
+X-Correlation-ID: test-error-002
+
+{
+  "paymentInstructionType": "BECS_DIRECT_ENTRY",
+  "paymentInstructionAmount": {
+    "amount": "100.00",
+    "currency": "AUD"
+  }
+}
+
+### Test Invalid Currency
+POST {{baseUrl}}{{basePath}}/npp-payments/initiate
+Content-Type: application/json
+X-Correlation-ID: test-error-003
+
+{
+  "paymentInstructionType": "NPP_INSTANT",
+  "paymentInstructionAmount": {
+    "amount": "100.00",
+    "currency": "INVALID"
+  },
+  "paymentMechanism": "NPP",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "John Doe"
+  },
+  "creditAccount": {
+    "accountIdentification": "987654321",
+    "bankCode": "654-321",
+    "accountName": "Jane Smith"
+  }
+}
+
+### Test Invalid BSB Format
+POST {{baseUrl}}{{basePath}}/direct-debit/initiate
+Content-Type: application/json
+X-Correlation-ID: test-error-004
+
+{
+  "paymentInstructionType": "DIRECT_DEBIT",
+  "paymentInstructionAmount": {
+    "amount": "29.99",
+    "currency": "AUD"
+  },
+  "paymentMechanism": "DIRECT_DEBIT",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "12345",
+    "accountName": "Customer Name"
+  },
+  "creditAccount": {
+    "accountIdentification": "555666777",
+    "bankCode": "555-666",
+    "accountName": "Subscription Service Pty Ltd"
+  },
+  "directDebitData": {
+    "mandateReference": "SUB_12345",
+    "directDebitType": "RECURRING",
+    "frequency": "MONTHLY",
+    "firstDebitDate": "2025-12-15",
+    "authorisationMethod": "ONLINE",
+    "creditorReference": "CRED_001",
+    "creditorName": "Subscription Service Pty Ltd",
+    "debtorReference": "DEBT_001",
+    "mandateDescription": "Monthly subscription payment"
+  }
+}
+
+### Test Payment Not Found (404)
+GET {{baseUrl}}{{basePath}}/npp-payments/NONEXISTENT-ID/retrieve
+X-Correlation-ID: test-error-005
+
+### Test Invalid JSON (400 Bad Request)
+POST {{baseUrl}}{{basePath}}/npp-payments/initiate
+Content-Type: application/json
+X-Correlation-ID: test-error-006
+
+{
+  "invalid": "json",
+  "missing": "quotes
+
+###############################################################################
+### SYSTEM ENDPOINTS
+###############################################################################
 
 ### API Documentation
 GET {{baseUrl}}/api-docs
@@ -236,11 +895,66 @@ GET {{baseUrl}}/
 ### Test 404 Error
 GET {{baseUrl}}/nonexistent-endpoint
 
-### Test Invalid JSON (Should return 400 Bad Request)
+###############################################################################
+### PERFORMANCE AND LOAD TESTING SCENARIOS
+###############################################################################
+
+### Batch Payment Test - Multiple NPP Payments
 POST {{baseUrl}}{{basePath}}/npp-payments/initiate
 Content-Type: application/json
+X-Correlation-ID: test-batch-001
 
 {
-  "invalid": "json",
-  "missing": "quotes
+  "paymentInstructionType": "NPP_INSTANT",
+  "paymentInstructionAmount": {
+    "amount": "10.00",
+    "currency": "AUD"
+  },
+  "paymentMechanism": "NPP",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "Batch Test Account"
+  },
+  "creditAccount": {
+    "accountIdentification": "987654000",
+    "bankCode": "654-321",
+    "accountName": "Test Recipient 1"
+  },
+  "remittanceInformation": "Batch test payment 1"
+}
+
+### Large Amount Payment Test
+POST {{baseUrl}}{{basePath}}/domestic-wires/initiate
+Content-Type: application/json
+X-Correlation-ID: test-large-amount-001
+
+{
+  "paymentInstructionType": "DOMESTIC_WIRE",
+  "paymentInstructionAmount": {
+    "amount": "999999.00",
+    "currency": "AUD"
+  },
+  "paymentMechanism": "RTGS",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "Large Payment Account"
+  },
+  "creditAccount": {
+    "accountIdentification": "987654321",
+    "bankCode": "654-321",
+    "accountName": "Large Payment Recipient"
+  },
+  "remittanceInformation": "Large amount test payment",
+  "domesticWireData": {
+    "wireType": "HIGH_VALUE",
+    "priority": "URGENT",
+    "settlementMethod": "RTGS",
+    "executionDate": "2025-12-15",
+    "valueDate": "2025-12-15",
+    "instructionId": "LARGE123456",
+    "endToEndId": "E2ELARGE987654",
+    "chargeBearer": "SHARED"
+  }
 }
