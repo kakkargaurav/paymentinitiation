@@ -1,0 +1,246 @@
+### Test Australian Bank Payment Initiation API
+### HTTP Client test file for manual testing
+
+@baseUrl = http://localhost:3232
+@basePath = /payment-initiation
+
+### Health Check
+GET {{baseUrl}}/health
+
+### Get Service Information
+GET {{baseUrl}}{{basePath}}/service-info
+
+### Get Test Scenarios
+GET {{baseUrl}}{{basePath}}/npp-payments/test-scenarios
+
+### Generate Test Data for Scenario 0 (Amount < $100 - Success)
+POST {{baseUrl}}{{basePath}}/npp-payments/test-scenarios/0/generate
+
+### Initiate NPP Instant Payment (Success - Amount < $100)
+POST {{baseUrl}}{{basePath}}/npp-payments/initiate
+Content-Type: application/json
+X-Correlation-ID: test-npp-001
+
+{
+  "paymentInstructionType": "NPP_INSTANT",
+  "paymentInstructionAmount": {
+    "amount": "50.00",
+    "currency": "AUD"
+  },
+  "paymentMechanism": "NPP",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "John Doe"
+  },
+  "creditAccount": {
+    "accountIdentification": "987654321",
+    "bankCode": "654-321",
+    "accountName": "Jane Smith"
+  },
+  "paymentPurpose": "Payment for services",
+  "remittanceInformation": "Test payment - should succeed",
+  "nppData": {
+    "paymentCategory": "INSTANT_PAYMENT",
+    "urgency": "NORMAL"
+  }
+}
+
+### Initiate NPP PayID Payment (Success - PayID with @success.com)
+POST {{baseUrl}}{{basePath}}/npp-payments/initiate
+Content-Type: application/json
+X-Correlation-ID: test-npp-002
+
+{
+  "paymentInstructionType": "NPP_PAYID",
+  "paymentInstructionAmount": {
+    "amount": "75.00",
+    "currency": "AUD"
+  },
+  "paymentMechanism": "NPP",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "John Doe"
+  },
+  "creditAccount": {
+    "accountIdentification": "",
+    "accountName": ""
+  },
+  "payIdDetails": {
+    "payIdType": "EMAIL",
+    "payIdValue": "recipient@success.com"
+  },
+  "remittanceInformation": "Coffee payment via PayID",
+  "nppData": {
+    "paymentCategory": "PAYID_PAYMENT",
+    "urgency": "HIGH"
+  }
+}
+
+### Initiate NPP Payment (Failure - Amount = $999.99)
+POST {{baseUrl}}{{basePath}}/npp-payments/initiate
+Content-Type: application/json
+X-Correlation-ID: test-npp-003
+
+{
+  "paymentInstructionType": "NPP_INSTANT",
+  "paymentInstructionAmount": {
+    "amount": "999.99",
+    "currency": "AUD"
+  },
+  "paymentMechanism": "NPP",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "John Doe"
+  },
+  "creditAccount": {
+    "accountIdentification": "987654321",
+    "bankCode": "654-321",
+    "accountName": "Jane Smith"
+  },
+  "remittanceInformation": "Test payment - should fail with insufficient funds",
+  "nppData": {
+    "paymentCategory": "INSTANT_PAYMENT",
+    "urgency": "NORMAL"
+  }
+}
+
+### Initiate NPP Payment (Failure - Account ending in 1111)
+POST {{baseUrl}}{{basePath}}/npp-payments/initiate
+Content-Type: application/json
+X-Correlation-ID: test-npp-004
+
+{
+  "paymentInstructionType": "NPP_INSTANT",
+  "paymentInstructionAmount": {
+    "amount": "100.00",
+    "currency": "AUD"
+  },
+  "paymentMechanism": "NPP",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "John Doe"
+  },
+  "creditAccount": {
+    "accountIdentification": "987651111",
+    "bankCode": "654-321",
+    "accountName": "Jane Smith"
+  },
+  "remittanceInformation": "Test payment - should fail with invalid account",
+  "nppData": {
+    "paymentCategory": "INSTANT_PAYMENT",
+    "urgency": "NORMAL"
+  }
+}
+
+### Initiate NPP Payment (Requires Approval - Amount > $10,000)
+POST {{baseUrl}}{{basePath}}/npp-payments/initiate
+Content-Type: application/json
+X-Correlation-ID: test-npp-005
+
+{
+  "paymentInstructionType": "NPP_INSTANT",
+  "paymentInstructionAmount": {
+    "amount": "15000.00",
+    "currency": "AUD"
+  },
+  "paymentMechanism": "NPP",
+  "debitAccount": {
+    "accountIdentification": "123456789",
+    "bankCode": "123-456",
+    "accountName": "John Doe"
+  },
+  "creditAccount": {
+    "accountIdentification": "987654321",
+    "bankCode": "654-321",
+    "accountName": "Jane Smith"
+  },
+  "remittanceInformation": "Large payment - should require approval",
+  "nppData": {
+    "paymentCategory": "INSTANT_PAYMENT",
+    "urgency": "NORMAL"
+  }
+}
+
+### Retrieve Payment (use payment ID from previous response)
+GET {{baseUrl}}{{basePath}}/npp-payments/{paymentId}/retrieve
+X-Correlation-ID: test-retrieve-001
+
+### Update Payment (use payment ID from previous response)
+PUT {{baseUrl}}{{basePath}}/npp-payments/{paymentId}/update
+Content-Type: application/json
+X-Correlation-ID: test-update-001
+
+{
+  "paymentInstructionAmount": {
+    "amount": "125.00",
+    "currency": "AUD"
+  },
+  "remittanceInformation": "Updated payment reference"
+}
+
+### Submit Payment for Processing (use payment ID from previous response)
+POST {{baseUrl}}{{basePath}}/npp-payments/{paymentId}/request
+Content-Type: application/json
+X-Correlation-ID: test-request-001
+
+{
+  "requestType": "PROCESS",
+  "requestDescription": "Submit payment for immediate processing"
+}
+
+### Cancel Payment (use payment ID from previous response)
+PUT {{baseUrl}}{{basePath}}/npp-payments/{paymentId}/control
+Content-Type: application/json
+X-Correlation-ID: test-control-001
+
+{
+  "controlActionType": "CANCEL",
+  "controlActionDescription": "Customer requested cancellation",
+  "controlActionReason": "Duplicate payment"
+}
+
+### Query NPP Payments
+GET {{baseUrl}}{{basePath}}/npp-payments?limit=10&offset=0
+X-Correlation-ID: test-query-001
+
+### Query NPP Payments by Status
+GET {{baseUrl}}{{basePath}}/npp-payments?status=COMPLETED&limit=5
+X-Correlation-ID: test-query-002
+
+### Test BECS Endpoint (Should return 501 Not Implemented)
+POST {{baseUrl}}{{basePath}}/becs-payments/initiate
+Content-Type: application/json
+
+{
+  "test": "data"
+}
+
+### Test BPAY Endpoint (Should return 501 Not Implemented)
+POST {{baseUrl}}{{basePath}}/bpay-payments/initiate
+Content-Type: application/json
+
+{
+  "test": "data"
+}
+
+### API Documentation
+GET {{baseUrl}}/api-docs
+
+### Root Endpoint
+GET {{baseUrl}}/
+
+### Test 404 Error
+GET {{baseUrl}}/nonexistent-endpoint
+
+### Test Invalid JSON (Should return 400 Bad Request)
+POST {{baseUrl}}{{basePath}}/npp-payments/initiate
+Content-Type: application/json
+
+{
+  "invalid": "json",
+  "missing": "quotes
+}

@@ -1,0 +1,59 @@
+{
+  "name": "australian-bank-payment-api",
+  "version": "1.0.0",
+  "description": "BIAN-compliant payment initiation API for Australian banking systems",
+  "main": "dist/app.js",
+  "scripts": {
+    "start": "node dist/app.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
+    "build": "tsc",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "docker:build": "docker build -t australian-payment-api .",
+    "docker:run": "docker run -p 3232:3232 australian-payment-api"
+  },
+  "keywords": [
+    "banking",
+    "payments",
+    "BIAN",
+    "Australian",
+    "NPP",
+    "BECS",
+    "BPAY"
+  ],
+  "author": "Bank Development Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "winston": "^3.11.0",
+    "joi": "^17.11.0",
+    "uuid": "^9.0.1",
+    "swagger-ui-express": "^5.0.0",
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^20.9.0",
+    "@types/uuid": "^9.0.7",
+    "@types/swagger-ui-express": "^4.1.6",
+    "@types/yamljs": "^0.2.34",
+    "@types/jest": "^29.5.8",
+    "@typescript-eslint/eslint-plugin": "^6.12.0",
+    "@typescript-eslint/parser": "^6.12.0",
+    "eslint": "^8.54.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

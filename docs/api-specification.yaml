@@ -1,0 +1,744 @@
+openapi: 3.0.3
+info:
+  title: Australian Bank Payment Initiation API
+  description: |
+    BIAN-compliant payment initiation API for Australian banking systems.
+    
+    Supports all major Australian payment types:
+    - NPP (New Payments Platform) - Real-time instant payments
+    - BECS (Bulk Electronic Clearing System) - Batch direct entry
+    - BPAY - Bill payment system
+    - Direct Debit - Recurring collections
+    - Domestic Wire Transfers - High-value payments
+    - International Wire Transfers - Cross-border payments
+    
+    Built following BIAN v12.0.0 Payment Initiation service domain standards.
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api-support@bank.com.au
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3232
+    description: Development server
+  - url: https://paymentinitiation.codecrushers.club
+    description: Production server
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Check API health status
+      operationId: healthCheck
+      tags:
+        - System
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /payment-initiation/service-info:
+    get:
+      summary: Service information
+      description: Get BIAN service domain information
+      operationId: getServiceInfo
+      tags:
+        - System
+      responses:
+        '200':
+          description: Service information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceInfoResponse'
+
+  /payment-initiation/npp-payments/initiate:
+    post:
+      summary: Initiate NPP payment
+      description: Create a new NPP payment instruction
+      operationId: initiateNPPPayment
+      tags:
+        - NPP Payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitiateNPPPaymentRequest'
+            examples:
+              instant_payment:
+                summary: NPP Instant Payment
+                value:
+                  paymentInstructionType: NPP_INSTANT
+                  paymentInstructionAmount:
+                    amount: "100.00"
+                    currency: AUD
+                  paymentMechanism: NPP
+                  debitAccount:
+                    accountIdentification: "123456789"
+                    bankCode: "123-456"
+                    accountName: "John Doe"
+                  creditAccount:
+                    accountIdentification: "987654321"
+                    bankCode: "654-321"
+                    accountName: "Jane Smith"
+                  remittanceInformation: "Payment for services"
+                  nppData:
+                    paymentCategory: INSTANT_PAYMENT
+                    urgency: NORMAL
+              payid_payment:
+                summary: NPP PayID Payment
+                value:
+                  paymentInstructionType: NPP_PAYID
+                  paymentInstructionAmount:
+                    amount: "50.00"
+                    currency: AUD
+                  paymentMechanism: NPP
+                  debitAccount:
+                    accountIdentification: "123456789"
+                    bankCode: "123-456"
+                  creditAccount:
+                    accountIdentification: ""
+                    accountName: ""
+                  payIdDetails:
+                    payIdType: EMAIL
+                    payIdValue: "recipient@example.com"
+                  remittanceInformation: "Coffee payment"
+                  nppData:
+                    paymentCategory: PAYID_PAYMENT
+                    urgency: HIGH
+      responses:
+        '201':
+          description: Payment initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitiateNPPPaymentResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /payment-initiation/npp-payments/{paymentId}/update:
+    put:
+      summary: Update NPP payment
+      description: Update an existing NPP payment before processing
+      operationId: updateNPPPayment
+      tags:
+        - NPP Payments
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Payment instruction reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNPPPaymentRequest'
+      responses:
+        '200':
+          description: Payment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateNPPPaymentResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /payment-initiation/npp-payments/{paymentId}/request:
+    post:
+      summary: Submit NPP payment for processing
+      description: Submit payment instruction for processing or authorization
+      operationId: requestNPPPayment
+      tags:
+        - NPP Payments
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Payment instruction reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestNPPPaymentRequest'
+      responses:
+        '200':
+          description: Payment request processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestNPPPaymentResponse'
+
+  /payment-initiation/npp-payments/{paymentId}/retrieve:
+    get:
+      summary: Retrieve NPP payment
+      description: Get payment details and current status
+      operationId: retrieveNPPPayment
+      tags:
+        - NPP Payments
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Payment instruction reference
+      responses:
+        '200':
+          description: Payment details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveNPPPaymentResponse'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /payment-initiation/npp-payments/{paymentId}/control:
+    put:
+      summary: Control NPP payment
+      description: Cancel, suspend, or resume payment execution
+      operationId: controlNPPPayment
+      tags:
+        - NPP Payments
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Payment instruction reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ControlNPPPaymentRequest'
+      responses:
+        '200':
+          description: Payment control action performed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlNPPPaymentResponse'
+
+  /payment-initiation/npp-payments:
+    get:
+      summary: Query NPP payments
+      description: Search and filter NPP payments
+      operationId: queryNPPPayments
+      tags:
+        - NPP Payments
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/PaymentStatus'
+        - name: debitAccount
+          in: query
+          schema:
+            type: string
+        - name: creditAccount
+          in: query
+          schema:
+            type: string
+        - name: minAmount
+          in: query
+          schema:
+            type: number
+        - name: maxAmount
+          in: query
+          schema:
+            type: number
+        - name: fromDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: toDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          description: Payments retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryNPPPaymentsResponse'
+
+  /payment-initiation/npp-payments/test-scenarios:
+    get:
+      summary: Get test scenarios
+      description: Retrieve available test scenarios for NPP payments
+      operationId: getTestScenarios
+      tags:
+        - Testing
+      responses:
+        '200':
+          description: Test scenarios retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestScenariosResponse'
+
+  /payment-initiation/npp-payments/test-scenarios/{scenarioIndex}/generate:
+    post:
+      summary: Generate test data
+      description: Generate test payment data for a specific scenario
+      operationId: generateTestData
+      tags:
+        - Testing
+      parameters:
+        - name: scenarioIndex
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Test scenario index
+      responses:
+        '200':
+          description: Test data generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateTestDataResponse'
+
+components:
+  schemas:
+    # Common types
+    PaymentType:
+      type: string
+      enum:
+        - NPP_INSTANT
+        - NPP_PAYID
+        - BECS_DIRECT_ENTRY
+        - BPAY_PAYMENT
+        - DIRECT_DEBIT
+        - DOMESTIC_WIRE
+        - INTERNATIONAL_WIRE
+
+    PaymentStatus:
+      type: string
+      enum:
+        - INITIATED
+        - PENDING_VALIDATION
+        - VALIDATED
+        - PENDING_AUTHORIZATION
+        - AUTHORIZED
+        - REJECTED
+        - PROCESSING
+        - COMPLETED
+        - FAILED
+        - CANCELLED
+        - RETURNED
+
+    PaymentMechanism:
+      type: string
+      enum:
+        - NPP
+        - BECS
+        - BPAY
+        - RTGS
+        - SWIFT
+        - DIRECT_DEBIT
+
+    Currency:
+      type: string
+      enum:
+        - AUD
+        - USD
+        - EUR
+        - GBP
+        - JPY
+        - NZD
+
+    MonetaryAmount:
+      type: object
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: "100.00"
+        currency:
+          $ref: '#/components/schemas/Currency'
+
+    AccountReference:
+      type: object
+      required:
+        - accountIdentification
+      properties:
+        accountIdentification:
+          type: string
+          example: "123456789"
+        accountName:
+          type: string
+          example: "John Doe"
+        bankCode:
+          type: string
+          pattern: '^\d{3}-\d{3}$'
+          example: "123-456"
+        bankName:
+          type: string
+          example: "Test Bank"
+
+    PayIDReference:
+      type: object
+      required:
+        - payIdType
+        - payIdValue
+      properties:
+        payIdType:
+          type: string
+          enum: [EMAIL, MOBILE, ABN, ORG_ID]
+        payIdValue:
+          type: string
+          example: "user@example.com"
+        payIdName:
+          type: string
+          example: "John Doe"
+
+    # Request/Response schemas
+    InitiateNPPPaymentRequest:
+      type: object
+      required:
+        - paymentInstructionType
+        - paymentInstructionAmount
+        - paymentMechanism
+        - debitAccount
+        - creditAccount
+      properties:
+        paymentInstructionType:
+          $ref: '#/components/schemas/PaymentType'
+        paymentInstructionAmount:
+          $ref: '#/components/schemas/MonetaryAmount'
+        paymentMechanism:
+          $ref: '#/components/schemas/PaymentMechanism'
+        debitAccount:
+          $ref: '#/components/schemas/AccountReference'
+        creditAccount:
+          $ref: '#/components/schemas/AccountReference'
+        paymentPurpose:
+          type: string
+        paymentDescription:
+          type: string
+        remittanceInformation:
+          type: string
+        requestedExecutionDate:
+          type: string
+          format: date-time
+        payIdDetails:
+          $ref: '#/components/schemas/PayIDReference'
+        nppData:
+          type: object
+          properties:
+            paymentCategory:
+              type: string
+              enum: [INSTANT_PAYMENT, PAYID_PAYMENT, REQUEST_TO_PAY]
+            urgency:
+              type: string
+              enum: [HIGH, NORMAL]
+
+    InitiateNPPPaymentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            paymentInstructionReference:
+              type: string
+            paymentInstructionInstanceReference:
+              type: string
+            paymentInstruction:
+              type: object
+        correlationId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    UpdateNPPPaymentRequest:
+      type: object
+      properties:
+        paymentInstructionAmount:
+          $ref: '#/components/schemas/MonetaryAmount'
+        requestedExecutionDate:
+          type: string
+          format: date-time
+        paymentPurpose:
+          type: string
+        paymentDescription:
+          type: string
+        remittanceInformation:
+          type: string
+        payIdDetails:
+          $ref: '#/components/schemas/PayIDReference'
+
+    UpdateNPPPaymentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+        correlationId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    RequestNPPPaymentRequest:
+      type: object
+      required:
+        - requestType
+      properties:
+        requestType:
+          type: string
+          enum: [SUBMIT, AUTHORIZE, PROCESS]
+        requestDescription:
+          type: string
+
+    RequestNPPPaymentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+        correlationId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    RetrieveNPPPaymentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+        correlationId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    ControlNPPPaymentRequest:
+      type: object
+      required:
+        - controlActionType
+      properties:
+        controlActionType:
+          type: string
+          enum: [SUSPEND, RESUME, CANCEL, TERMINATE]
+        controlActionDescription:
+          type: string
+        controlActionReason:
+          type: string
+
+    ControlNPPPaymentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+        correlationId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    QueryNPPPaymentsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            paymentInstructions:
+              type: array
+              items:
+                type: object
+            totalCount:
+              type: integer
+            hasMore:
+              type: boolean
+        correlationId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    TestScenariosResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            scenarios:
+              type: array
+              items:
+                type: object
+                properties:
+                  index:
+                    type: integer
+                  description:
+                    type: string
+                  condition:
+                    type: object
+                  expectedResult:
+                    type: object
+        timestamp:
+          type: string
+          format: date-time
+
+    GenerateTestDataResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            scenarioIndex:
+              type: integer
+            testPaymentData:
+              type: object
+        timestamp:
+          type: string
+          format: date-time
+
+    HealthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            status:
+              type: string
+            uptime:
+              type: number
+            environment:
+              type: string
+        correlationId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    ServiceInfoResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            serviceInstanceId:
+              type: string
+            serviceDomainVersion:
+              type: string
+            bianStandardVersion:
+              type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              errorCode:
+                type: string
+              errorDescription:
+                type: string
+              errorPath:
+                type: string
+        correlationId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication (not implemented for testing)
+
+tags:
+  - name: System
+    description: System health and information endpoints
+  - name: NPP Payments
+    description: New Payments Platform operations
+  - name: Testing
+    description: Test scenarios and utilities
