@@ -16,10 +16,10 @@ info:
   version: 1.0.0
   contact:
     name: API Support
-    email: api-support@bank.com.au
+    email: mail@codecrushers.club
   license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
+    name: Code Crushers
+    url: https://codecrushers.club
 
 servers:
   - url: http://localhost:3232
