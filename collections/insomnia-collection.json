@@ -1,0 +1,376 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2025-06-15T10:04:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2024.1.0",
+  "resources": [
+    {
+      "_id": "wrk_main",
+      "parentId": null,
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "name": "Australian Bank Payment Initiation API v1.1",
+      "description": "BIAN-compliant payment initiation API for Australian banking systems - Updated with comprehensive wire transfer support",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "env_base",
+      "parentId": "wrk_main",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "name": "Base Environment",
+      "data": {
+        "baseUrl": "http://localhost:3232",
+        "apiBasePath": "/payment-initiation"
+      },
+      "dataPropertyOrder": {"&": ["baseUrl", "apiBasePath"]},
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1718370000000,
+      "_type": "environment"
+    },
+    {
+      "_id": "fld_health_service",
+      "parentId": "wrk_main",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "name": "🏥 Health & Service Info",
+      "description": "Health checks and service information endpoints",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1718370000000,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_health_check",
+      "parentId": "fld_health_service",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "url": "{{ _.baseUrl }}/health",
+      "name": "Health Check",
+      "description": "Check API health status",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [{"name": "X-Correlation-ID", "value": "health-{{ uuid }}", "disabled": false}],
+      "authentication": {},
+      "metaSortKey": -1718370000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "_type": "request"
+    },
+    {
+      "_id": "req_service_info",
+      "parentId": "fld_health_service",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "url": "{{ _.baseUrl }}{{ _.apiBasePath }}/service-info",
+      "name": "Service Information",
+      "description": "Get BIAN service domain information",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [{"name": "X-Correlation-ID", "value": "service-{{ uuid }}", "disabled": false}],
+      "authentication": {},
+      "metaSortKey": -1718369000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "_type": "request"
+    },
+    {
+      "_id": "fld_npp_payments",
+      "parentId": "wrk_main",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "name": "💸 NPP Payments (Real-time)",
+      "description": "New Payments Platform instant payments",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1718360000000,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_npp_initiate_success",
+      "parentId": "fld_npp_payments",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "url": "{{ _.baseUrl }}{{ _.apiBasePath }}/npp-payments/initiate",
+      "name": "Initiate NPP Payment - Success",
+      "description": "Create a successful NPP instant payment",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"paymentInstructionType\": \"NPP_INSTANT\",\n  \"paymentInstructionAmount\": {\n    \"amount\": \"50.00\",\n    \"currency\": \"AUD\"\n  },\n  \"paymentMechanism\": \"NPP\",\n  \"debitAccount\": {\n    \"accountIdentification\": \"123456789\",\n    \"bankCode\": \"123-456\",\n    \"accountName\": \"John Doe\"\n  },\n  \"creditAccount\": {\n    \"accountIdentification\": \"987654321\",\n    \"bankCode\": \"654-321\",\n    \"accountName\": \"Jane Smith\"\n  },\n  \"paymentPurpose\": \"Payment for services\",\n  \"remittanceInformation\": \"Test payment - should succeed\",\n  \"nppData\": {\n    \"paymentCategory\": \"INSTANT_PAYMENT\",\n    \"urgency\": \"NORMAL\"\n  }\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {"name": "Content-Type", "value": "application/json", "disabled": false},
+        {"name": "X-Correlation-ID", "value": "npp-success-{{ uuid }}", "disabled": false}
+      ],
+      "authentication": {},
+      "metaSortKey": -1718360000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "_type": "request"
+    },
+    {
+      "_id": "req_npp_initiate_fail",
+      "parentId": "fld_npp_payments",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "url": "{{ _.baseUrl }}{{ _.apiBasePath }}/npp-payments/initiate",
+      "name": "Initiate NPP Payment - Insufficient Funds",
+      "description": "Test NPP payment with insufficient funds",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"paymentInstructionType\": \"NPP_INSTANT\",\n  \"paymentInstructionAmount\": {\n    \"amount\": \"999.99\",\n    \"currency\": \"AUD\"\n  },\n  \"paymentMechanism\": \"NPP\",\n  \"debitAccount\": {\n    \"accountIdentification\": \"123456789\",\n    \"bankCode\": \"123-456\",\n    \"accountName\": \"John Doe\"\n  },\n  \"creditAccount\": {\n    \"accountIdentification\": \"987654321\",\n    \"bankCode\": \"654-321\",\n    \"accountName\": \"Jane Smith\"\n  },\n  \"remittanceInformation\": \"Test payment - should fail with insufficient funds\",\n  \"nppData\": {\n    \"paymentCategory\": \"INSTANT_PAYMENT\",\n    \"urgency\": \"NORMAL\"\n  }\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {"name": "Content-Type", "value": "application/json", "disabled": false},
+        {"name": "X-Correlation-ID", "value": "npp-fail-{{ uuid }}", "disabled": false}
+      ],
+      "authentication": {},
+      "metaSortKey": -1718359000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "_type": "request"
+    },
+    {
+      "_id": "fld_becs_payments",
+      "parentId": "wrk_main",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "name": "📦 BECS Payments (Batch)",
+      "description": "Bulk Electronic Clearing System payments",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1718350000000,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_becs_initiate",
+      "parentId": "fld_becs_payments",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "url": "{{ _.baseUrl }}{{ _.apiBasePath }}/becs-payments/initiate",
+      "name": "Initiate BECS Payment",
+      "description": "Create a BECS direct entry payment",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"paymentInstructionType\": \"BECS_DIRECT_ENTRY\",\n  \"paymentInstructionAmount\": {\n    \"amount\": \"500.00\",\n    \"currency\": \"AUD\"\n  },\n  \"paymentMechanism\": \"BECS\",\n  \"debitAccount\": {\n    \"accountIdentification\": \"123456789\",\n    \"bankCode\": \"123-456\",\n    \"accountName\": \"Company Ltd\"\n  },\n  \"creditAccount\": {\n    \"accountIdentification\": \"987654321\",\n    \"bankCode\": \"654-321\",\n    \"accountName\": \"Employee Name\"\n  },\n  \"remittanceInformation\": \"Salary payment\",\n  \"becsData\": {\n    \"transactionCode\": \"50\",\n    \"processingDay\": \"NEXT_DAY\",\n    \"lodgementReference\": \"PAYROLL_2024\",\n    \"remitterName\": \"Company Ltd\",\n    \"directEntryUserId\": \"123456\",\n    \"apcsNumber\": \"123456\",\n    \"userSuppliedDescription\": \"Payroll payments\"\n  }\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {"name": "Content-Type", "value": "application/json", "disabled": false},
+        {"name": "X-Correlation-ID", "value": "becs-{{ uuid }}", "disabled": false}
+      ],
+      "authentication": {},
+      "metaSortKey": -1718350000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "_type": "request"
+    },
+    {
+      "_id": "fld_bpay_payments",
+      "parentId": "wrk_main",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "name": "💳 BPAY Payments (Bills)",
+      "description": "Australian bill payment system",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1718340000000,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_bpay_initiate",
+      "parentId": "fld_bpay_payments",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "url": "{{ _.baseUrl }}{{ _.apiBasePath }}/bpay-payments/initiate",
+      "name": "Initiate BPAY Payment",
+      "description": "Create a BPAY bill payment",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"paymentInstructionType\": \"BPAY_PAYMENT\",\n  \"paymentInstructionAmount\": {\n    \"amount\": \"75.50\",\n    \"currency\": \"AUD\"\n  },\n  \"paymentMechanism\": \"BPAY\",\n  \"debitAccount\": {\n    \"accountIdentification\": \"123456789\",\n    \"bankCode\": \"123-456\",\n    \"accountName\": \"Customer Name\"\n  },\n  \"creditAccount\": {\n    \"accountIdentification\": \"123456\",\n    \"accountName\": \"Energy Australia\"\n  },\n  \"remittanceInformation\": \"Electricity bill payment\",\n  \"bpayData\": {\n    \"transactionType\": \"BILL_PAYMENT\",\n    \"paymentMethod\": \"INTERNET_BANKING\",\n    \"customerReferenceNumber\": \"987654321098\"\n  },\n  \"bpayReference\": {\n    \"billerCode\": \"123456\",\n    \"referenceNumber\": \"987654321098\",\n    \"billerName\": \"Energy Australia\"\n  }\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {"name": "Content-Type", "value": "application/json", "disabled": false},
+        {"name": "X-Correlation-ID", "value": "bpay-{{ uuid }}", "disabled": false}
+      ],
+      "authentication": {},
+      "metaSortKey": -1718340000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "_type": "request"
+    },
+    {
+      "_id": "fld_direct_debit",
+      "parentId": "wrk_main",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "name": "🔄 Direct Debit (Recurring)",
+      "description": "Recurring payment collections",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1718330000000,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_direct_debit_initiate",
+      "parentId": "fld_direct_debit",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "url": "{{ _.baseUrl }}{{ _.apiBasePath }}/direct-debit/initiate",
+      "name": "Initiate Direct Debit",
+      "description": "Create a recurring direct debit",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"paymentInstructionType\": \"DIRECT_DEBIT\",\n  \"paymentInstructionAmount\": {\n    \"amount\": \"29.99\",\n    \"currency\": \"AUD\"\n  },\n  \"paymentMechanism\": \"DIRECT_DEBIT\",\n  \"debitAccount\": {\n    \"accountIdentification\": \"123456789\",\n    \"bankCode\": \"123-456\",\n    \"accountName\": \"Customer Name\"\n  },\n  \"creditAccount\": {\n    \"accountIdentification\": \"555666777\",\n    \"bankCode\": \"555-666\",\n    \"accountName\": \"Subscription Service Pty Ltd\"\n  },\n  \"remittanceInformation\": \"Monthly subscription\",\n  \"directDebitData\": {\n    \"mandateReference\": \"SUB_12345\",\n    \"directDebitType\": \"RECURRING\",\n    \"frequency\": \"MONTHLY\",\n    \"firstDebitDate\": \"2025-12-15\",\n    \"numberOfPayments\": 12,\n    \"authorisationMethod\": \"ONLINE\",\n    \"creditorReference\": \"CRED_001\",\n    \"creditorName\": \"Subscription Service Pty Ltd\",\n    \"debtorReference\": \"DEBT_001\",\n    \"mandateDescription\": \"Monthly subscription payment\"\n  }\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {"name": "Content-Type", "value": "application/json", "disabled": false},
+        {"name": "X-Correlation-ID", "value": "dd-{{ uuid }}", "disabled": false}
+      ],
+      "authentication": {},
+      "metaSortKey": -1718330000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "_type": "request"
+    },
+    {
+      "_id": "fld_domestic_wire",
+      "parentId": "wrk_main",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "name": "🏦 Domestic Wire Transfers (High-Value)",
+      "description": "Domestic high-value wire transfers via RTGS",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1718320000000,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_domestic_wire_initiate",
+      "parentId": "fld_domestic_wire",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "url": "{{ _.baseUrl }}{{ _.apiBasePath }}/domestic-wires/initiate",
+      "name": "Initiate Domestic Wire Transfer",
+      "description": "Create a domestic wire transfer",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"paymentInstructionType\": \"DOMESTIC_WIRE\",\n  \"paymentInstructionAmount\": {\n    \"amount\": \"50000.00\",\n    \"currency\": \"AUD\"\n  },\n  \"paymentMechanism\": \"RTGS\",\n  \"debitAccount\": {\n    \"accountIdentification\": \"123456789\",\n    \"bankCode\": \"123-456\",\n    \"accountName\": \"Corporate Account\"\n  },\n  \"creditAccount\": {\n    \"accountIdentification\": \"987654321\",\n    \"bankCode\": \"654-321\",\n    \"accountName\": \"Supplier Pty Ltd\"\n  },\n  \"remittanceInformation\": \"Invoice payment - urgent\",\n  \"domesticWireData\": {\n    \"wireType\": \"HIGH_VALUE\",\n    \"priority\": \"URGENT\",\n    \"settlementMethod\": \"RTGS\",\n    \"executionDate\": \"2025-12-15\",\n    \"valueDate\": \"2025-12-15\",\n    \"instructionId\": \"WIRE123456\",\n    \"endToEndId\": \"E2E987654\",\n    \"chargeBearer\": \"SHARED\"\n  }\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {"name": "Content-Type", "value": "application/json", "disabled": false},
+        {"name": "X-Correlation-ID", "value": "domestic-wire-{{ uuid }}", "disabled": false}
+      ],
+      "authentication": {},
+      "metaSortKey": -1718320000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "_type": "request"
+    },
+    {
+      "_id": "fld_international_wire",
+      "parentId": "wrk_main",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "name": "🌍 International Wire Transfers (SWIFT)",
+      "description": "International wire transfers via SWIFT network",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1718310000000,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_international_wire_initiate",
+      "parentId": "fld_international_wire",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "url": "{{ _.baseUrl }}{{ _.apiBasePath }}/international-wires/initiate",
+      "name": "Initiate International Wire Transfer",
+      "description": "Create an international wire transfer",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"paymentInstructionType\": \"INTERNATIONAL_WIRE\",\n  \"paymentInstructionAmount\": {\n    \"amount\": \"25000.00\",\n    \"currency\": \"USD\"\n  },\n  \"paymentMechanism\": \"SWIFT\",\n  \"debitAccount\": {\n    \"accountIdentification\": \"123456789\",\n    \"bankCode\": \"123-456\",\n    \"accountName\": \"Corporate Account\"\n  },\n  \"creditAccount\": {\n    \"accountIdentification\": \"987654321\",\n    \"bankCode\": \"CHASUS33\",\n    \"accountName\": \"Overseas Supplier Inc\"\n  },\n  \"remittanceInformation\": \"Trade payment for goods\",\n  \"internationalWireData\": {\n    \"wireType\": \"COMMERCIAL_PAYMENT\",\n    \"priority\": \"NORMAL\",\n    \"purposeCode\": \"TRADE\",\n    \"instructionId\": \"INTL123456\",\n    \"endToEndId\": \"E2E987654\",\n    \"chargeBearer\": \"SHARED\",\n    \"correspondentBankDetails\": {\n      \"correspondentBIC\": \"CHASUS33\",\n      \"correspondentName\": \"JP Morgan Chase Bank\",\n      \"correspondentAccount\": \"400123456\"\n    },\n    \"beneficiaryBankDetails\": {\n      \"beneficiaryBIC\": \"CHASUS33\",\n      \"beneficiaryBankName\": \"Chase Bank USA\",\n      \"beneficiaryBankAddress\": \"New York, NY, USA\"\n    },\n    \"regulatoryReporting\": {\n      \"reportingCode\": \"TRADE\",\n      \"reportingDescription\": \"Trade payment\"\n    }\n  }\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {"name": "Content-Type", "value": "application/json", "disabled": false},
+        {"name": "X-Correlation-ID", "value": "intl-wire-{{ uuid }}", "disabled": false}
+      ],
+      "authentication": {},
+      "metaSortKey": -1718310000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "_type": "request"
+    },
+    {
+      "_id": "req_international_wire_blocked",
+      "parentId": "fld_international_wire",
+      "modified": 1718370000000,
+      "created": 1718370000000,
+      "url": "{{ _.baseUrl }}{{ _.apiBasePath }}/international-wires/initiate",
+      "name": "Initiate International Wire - Compliance Failure",
+      "description": "Test international wire to blocked country",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"paymentInstructionType\": \"INTERNATIONAL_WIRE\",\n  \"paymentInstructionAmount\": {\n    \"amount\": \"15000.00\",\n    \"currency\": \"USD\"\n  },\n  \"paymentMechanism\": \"SWIFT\",\n  \"debitAccount\": {\n    \"accountIdentification\": \"123456789\",\n    \"bankCode\": \"123-456\",\n    \"accountName\": \"Corporate Account\"\n  },\n  \"creditAccount\": {\n    \"accountIdentification\": \"987654321\",\n    \"bankCode\": \"BLOCKEDXX\",\n    \"accountName\": \"Blocked Country Entity\"\n  },\n  \"remittanceInformation\": \"Payment to blocked country - should fail\",\n  \"internationalWireData\": {\n    \"wireType\": \"COMMERCIAL_PAYMENT\",\n    \"priority\": \"NORMAL\",\n    \"purposeCode\": \"TRADE\",\n    \"instructionId\": \"INTL123457\",\n    \"endToEndId\": \"E2E987655\",\n    \"chargeBearer\": \"SHARED\",\n    \"correspondentBankDetails\": {\n      \"correspondentBIC\": \"BLOCKEDXX\",\n      \"correspondentName\": \"Blocked Country Bank\",\n      \"correspondentAccount\": \"400123457\"\n    },\n    \"beneficiaryBankDetails\": {\n      \"beneficiaryBIC\": \"BLOCKEDXX\",\n      \"beneficiaryBankName\": \"Blocked Bank\",\n      \"beneficiaryBankAddress\": \"BLOCKED Country\"\n    },\n    \"regulatoryReporting\": {\n      \"reportingCode\": \"TRADE\",\n      \"reportingDescription\": \"Trade payment to blocked entity\"\n    }\n  }\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {"name": "Content-Type", "value": "application/json", "disabled": false},
+        {"name": "X-Correlation-ID", "value": "intl-wire-blocked-{{ uuid }}", "disabled": false}
+      ],
+      "authentication": {},
+      "metaSortKey": -1718309000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "_type": "request"
+    }
+  ]
+}
