@@ -30,7 +30,7 @@ jobs:
       
     - name: Generate version tag
       id: version
-      shell: pwsh
+      shell: powershell
       run: |
         # Get current version from package.json
         $packageJson = Get-Content package.json | ConvertFrom-Json
@@ -59,7 +59,7 @@ jobs:
         Add-Content -Path $env:GITHUB_OUTPUT -Value "full-image=$fullImage"
     
     - name: Build Docker image
-      shell: pwsh
+      shell: powershell
       run: |
         docker build -t ${{ steps.version.outputs.full-image }} .
         docker tag ${{ steps.version.outputs.full-image }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
@@ -80,7 +80,7 @@ jobs:
     #     docker rm test-container
         
     - name: Save Docker image
-      shell: pwsh
+      shell: powershell
       run: |
         docker save ${{ steps.version.outputs.full-image }} -o image.tar
         
@@ -105,17 +105,17 @@ jobs:
         path: .
         
     - name: Load Docker image
-      shell: pwsh
+      shell: powershell
       run: |
         docker load -i image.tar
         
     - name: Login to Container Registry
-      shell: pwsh
+      shell: powershell
       run: |
         Write-Host "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ env.REGISTRY }} -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
         
     - name: Push Docker image
-      shell: pwsh
+      shell: powershell
       run: |
         docker push ${{ needs.build.outputs.image-full }}
         docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
@@ -135,7 +135,7 @@ jobs:
     
     steps:
     - name: Deploy to Production Server
-      shell: pwsh
+      shell: powershell
       run: |
         Write-Host "Deploying ${{ needs.build.outputs.image-full }} to production..."
         
