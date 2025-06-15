@@ -88,7 +88,16 @@ jobs:
         $username = "${{ secrets.REGISTRY_USERNAME }}"
         $registry = "${{ env.REGISTRY }}"
         Write-Host "Logging into registry: $registry"
-        echo $password | docker login $registry --username $username --password-stdin
+        Write-Host "Username: $username"
+        
+        # Use PowerShell to pipe password to docker login
+        $password | docker login $registry --username $username --password-stdin
+        
+        # If that fails, try with explicit password parameter
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "First method failed, trying direct password method..."
+          docker login $registry --username $username --password $password
+        }
         
     - name: Push Docker image
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
