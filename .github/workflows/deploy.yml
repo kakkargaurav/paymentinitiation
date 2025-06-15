@@ -14,8 +14,8 @@ env:
   PORT: 3232
 
 jobs:
-  build:
-    name: Build Docker Image
+  build-and-publish:
+    name: Build and Publish Docker Image
     runs-on: Barebone
     outputs:
       image-tag: ${{ steps.version.outputs.new-tag }}
@@ -64,70 +64,45 @@ jobs:
         docker build -t ${{ steps.version.outputs.full-image }} .
         docker tag ${{ steps.version.outputs.full-image }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
         
-    # - name: Test Docker image
-    #   run: |
-    #     # Start container in background
-    #     docker run -d --name test-container -p 3233:3232 ${{ steps.version.outputs.full-image }}
-        
-    #     # Wait for container to start
-    #     sleep 10
-        
-    #     # Basic health check
-    #     curl -f http://localhost:3233/health || exit 1
-        
-    #     # Clean up
-    #     docker stop test-container
-    #     docker rm test-container
-        
-    - name: Save Docker image
+    - name: Test Docker image
       shell: powershell
       run: |
-        docker save ${{ steps.version.outputs.full-image }} -o image.tar
+        # Start container in background
+        docker run -d --name test-container -p 3233:3232 ${{ steps.version.outputs.full-image }}
         
-    - name: Upload Docker image artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: docker-image
-        path: image.tar
-        retention-days: 1
-
-  publish:
-    name: Publish to Registry
-    runs-on: Barebone
-    needs: build
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-    
-    steps:
-    - name: Download Docker image artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: docker-image
-        path: .
+        # Wait for container to start
+        Start-Sleep 20
         
-    - name: Load Docker image
-      shell: powershell
-      run: |
-        docker load -i image.tar
+        # Basic health check
+        Invoke-WebRequest -Uri "http://localhost:3233/health" -UseBasicParsing
+        
+        # Clean up
+        docker stop test-container
+        docker rm test-container
         
     - name: Login to Container Registry
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
       shell: powershell
       run: |
         Write-Host "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ env.REGISTRY }} -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
         
     - name: Push Docker image
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
       shell: powershell
       run: |
-        docker push ${{ needs.build.outputs.image-full }}
+        docker push ${{ steps.version.outputs.full-image }}
         docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
         
-    # - name: Logout from registry
-    #   run: |
-    #     docker logout ${{ env.REGISTRY }}
+    - name: Logout from registry
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      shell: powershell
+      run: |
+        docker logout ${{ env.REGISTRY }}
 
   deploy:
     name: Deploy to Production
     runs-on: Barebone
-    needs: [build, publish]
+    needs: [build-and-publish]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     environment: 
       name: Production
@@ -137,7 +112,7 @@ jobs:
     - name: Deploy to Production Server
       shell: powershell
       run: |
-        Write-Host "Deploying ${{ needs.build.outputs.image-full }} to production..."
+        Write-Host "Deploying ${{ needs.build-and-publish.outputs.image-full }} to production..."
         
         # Note: This step assumes you have SSH access to your production server
         # You'll need to set up SSH keys and server details in GitHub secrets
@@ -152,64 +127,27 @@ jobs:
         Write-Host "   docker rm ${{ env.CONTAINER_NAME }} || true"
         Write-Host ""
         Write-Host "3. Pull new image:"
-        Write-Host "   docker pull ${{ needs.build.outputs.image-full }}"
+        Write-Host "   docker pull ${{ needs.build-and-publish.outputs.image-full }}"
         Write-Host ""
         Write-Host "4. Run new container:"
-        Write-Host "   docker run -d --name ${{ env.CONTAINER_NAME }}-${{ needs.build.outputs.image-tag }} \"
+        Write-Host "   docker run -d --name ${{ env.CONTAINER_NAME }}-${{ needs.build-and-publish.outputs.image-tag }} \"
         Write-Host "     -p ${{ env.PORT }}:${{ env.PORT }} \"
         Write-Host "     --restart unless-stopped \"
-        Write-Host "     ${{ needs.build.outputs.image-full }}"
+        Write-Host "     ${{ needs.build-and-publish.outputs.image-full }}"
         Write-Host ""
         Write-Host "5. Verify deployment:"
         Write-Host "   curl -f http://localhost:${{ env.PORT }}/health"
-        Write-Host ""
-        Write-Host "6. Clean up old images:"
-        Write-Host "   docker system prune -f"
 
-    # Uncomment and modify the following step when you have SSH access configured
-    # - name: Execute deployment on production server
-    #   uses: appleboy/ssh-action@v1.0.0
-    #   with:
-    #     host: ${{ secrets.PRODUCTION_HOST }}
-    #     username: ${{ secrets.PRODUCTION_USER }}
-    #     key: ${{ secrets.PRODUCTION_SSH_KEY }}
-    #     port: ${{ secrets.PRODUCTION_PORT }}
-    #     script: |
-    #       # Login to registry
-    #       echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ env.REGISTRY }} -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
-    #       
-    #       # Stop and remove existing container
-    #       docker stop ${{ env.CONTAINER_NAME }} || true
-    #       docker rm ${{ env.CONTAINER_NAME }} || true
-    #       
-    #       # Pull new image
-    #       docker pull ${{ needs.build.outputs.image-full }}
-    #       
-    #       # Run new container with tag in name
-    #       docker run -d --name ${{ env.CONTAINER_NAME }}-${{ needs.build.outputs.image-tag }} \
-    #         -p ${{ env.PORT }}:${{ env.PORT }} \
-    #         --restart unless-stopped \
-    #         ${{ needs.build.outputs.image-full }}
-    #       
-    #       # Verify deployment
-    #       sleep 10
-    #       curl -f http://localhost:${{ env.PORT }}/health
-    #       
-    #       # Clean up old images
-    #       docker system prune -f
-    #       
-    #       # Logout from registry
-    #       docker logout ${{ env.REGISTRY }}
-
-  # cleanup:
-  #   name: Cleanup Artifacts
-  #   runs-on: Barebone
-  #   needs: [build, publish, deploy]
-  #   if: always()
+  cleanup:
+    name: Cleanup
+    runs-on: Barebone
+    needs: [build-and-publish, deploy]
+    if: always()
     
-  #   steps:
-  #   - name: Delete artifacts
-  #     uses: geekyeggo/delete-artifact@v4
-  #     with:
-  #       name: docker-image
-  #       failOnError: false
+    steps:
+    - name: Clean up Docker cache
+      shell: powershell
+      run: |
+        Write-Host "Cleaning up Docker cache..."
+        docker system prune -f --volumes
+        Write-Host "Docker cleanup completed."
