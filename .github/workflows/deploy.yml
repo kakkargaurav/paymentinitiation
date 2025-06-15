@@ -16,7 +16,7 @@ env:
 jobs:
   build:
     name: Build Docker Image
-    runs-on: self-hosted
+    runs-on: Barebone
     outputs:
       image-tag: ${{ steps.version.outputs.new-tag }}
       image-full: ${{ steps.version.outputs.full-image }}
@@ -30,32 +30,36 @@ jobs:
       
     - name: Generate version tag
       id: version
+      shell: pwsh
       run: |
         # Get current version from package.json
-        CURRENT_VERSION=$(grep '"version"' package.json | cut -d'"' -f4)
-        echo "Current version: $CURRENT_VERSION"
+        $packageJson = Get-Content package.json | ConvertFrom-Json
+        $currentVersion = $packageJson.version
+        Write-Host "Current version: $currentVersion"
         
-        # Extract major and minor version (assuming format x.y.z)
-        MAJOR=$(echo $CURRENT_VERSION | cut -d'.' -f1)
-        MINOR=$(echo $CURRENT_VERSION | cut -d'.' -f2)
+        # Generate new tag based on current version
+        if ($currentVersion -eq "1.1.0" -or $currentVersion -eq "1.1") {
+          $newTag = "1.11"
+        } else {
+          # Extract major and minor version
+          $versionParts = $currentVersion.Split('.')
+          $major = $versionParts[0]
+          $minor = $versionParts[1]
+          $newMinor = [int]$minor + 1
+          $newTag = "$major.$minor$newMinor"
+        }
         
-        # Increment minor version by 1 (1.1 -> 1.11, following the pattern)
-        NEW_MINOR=$((MINOR + 1))
-        NEW_TAG="${MAJOR}.${MINOR}${NEW_MINOR}"
+        $fullImage = "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$newTag"
         
-        # If current is 1.1, next should be 1.11 as requested
-        if [ "$CURRENT_VERSION" = "1.1.0" ] || [ "$CURRENT_VERSION" = "1.1" ]; then
-          NEW_TAG="1.11"
-        fi
+        Write-Host "New tag: $newTag"
+        Write-Host "Full image: $fullImage"
         
-        FULL_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${NEW_TAG}"
-        
-        echo "New tag: $NEW_TAG"
-        echo "Full image: $FULL_IMAGE"
-        echo "new-tag=$NEW_TAG" >> $GITHUB_OUTPUT
-        echo "full-image=$FULL_IMAGE" >> $GITHUB_OUTPUT
+        # Set outputs
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "new-tag=$newTag"
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "full-image=$fullImage"
     
     - name: Build Docker image
+      shell: pwsh
       run: |
         docker build -t ${{ steps.version.outputs.full-image }} .
         docker tag ${{ steps.version.outputs.full-image }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
@@ -76,19 +80,20 @@ jobs:
     #     docker rm test-container
         
     - name: Save Docker image
+      shell: pwsh
       run: |
-        docker save ${{ steps.version.outputs.full-image }} > /tmp/image.tar
+        docker save ${{ steps.version.outputs.full-image }} -o image.tar
         
     - name: Upload Docker image artifact
       uses: actions/upload-artifact@v4
       with:
         name: docker-image
-        path: /tmp/image.tar
+        path: image.tar
         retention-days: 1
 
   publish:
     name: Publish to Registry
-    runs-on: self-hosted
+    runs-on: Barebone
     needs: build
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     
@@ -97,17 +102,20 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: docker-image
-        path: /tmp
+        path: .
         
     - name: Load Docker image
+      shell: pwsh
       run: |
-        docker load < /tmp/image.tar
+        docker load -i image.tar
         
     - name: Login to Container Registry
+      shell: pwsh
       run: |
-        echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ env.REGISTRY }} -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
+        Write-Host "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ env.REGISTRY }} -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
         
     - name: Push Docker image
+      shell: pwsh
       run: |
         docker push ${{ needs.build.outputs.image-full }}
         docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
@@ -118,7 +126,7 @@ jobs:
 
   deploy:
     name: Deploy to Production
-    runs-on: self-hosted
+    runs-on: Barebone
     needs: [build, publish]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     environment: 
@@ -127,35 +135,36 @@ jobs:
     
     steps:
     - name: Deploy to Production Server
+      shell: pwsh
       run: |
-        echo "Deploying ${{ needs.build.outputs.image-full }} to production..."
+        Write-Host "Deploying ${{ needs.build.outputs.image-full }} to production..."
         
         # Note: This step assumes you have SSH access to your production server
         # You'll need to set up SSH keys and server details in GitHub secrets
         
         # For demonstration, showing the commands that would be executed on the server
-        echo "Commands that will be executed on production server:"
-        echo "1. Login to registry:"
-        echo "   docker login ${{ env.REGISTRY }} -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }}"
-        echo ""
-        echo "2. Stop and remove existing container:"
-        echo "   docker stop ${{ env.CONTAINER_NAME }} || true"
-        echo "   docker rm ${{ env.CONTAINER_NAME }} || true"
-        echo ""
-        echo "3. Pull new image:"
-        echo "   docker pull ${{ needs.build.outputs.image-full }}"
-        echo ""
-        echo "4. Run new container:"
-        echo "   docker run -d --name ${{ env.CONTAINER_NAME }}-${{ needs.build.outputs.image-tag }} \\"
-        echo "     -p ${{ env.PORT }}:${{ env.PORT }} \\"
-        echo "     --restart unless-stopped \\"
-        echo "     ${{ needs.build.outputs.image-full }}"
-        echo ""
-        echo "5. Verify deployment:"
-        echo "   curl -f http://localhost:${{ env.PORT }}/health"
-        echo ""
-        echo "6. Clean up old images:"
-        echo "   docker system prune -f"
+        Write-Host "Commands that will be executed on production server:"
+        Write-Host "1. Login to registry:"
+        Write-Host "   docker login ${{ env.REGISTRY }} -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }}"
+        Write-Host ""
+        Write-Host "2. Stop and remove existing container:"
+        Write-Host "   docker stop ${{ env.CONTAINER_NAME }} || true"
+        Write-Host "   docker rm ${{ env.CONTAINER_NAME }} || true"
+        Write-Host ""
+        Write-Host "3. Pull new image:"
+        Write-Host "   docker pull ${{ needs.build.outputs.image-full }}"
+        Write-Host ""
+        Write-Host "4. Run new container:"
+        Write-Host "   docker run -d --name ${{ env.CONTAINER_NAME }}-${{ needs.build.outputs.image-tag }} \"
+        Write-Host "     -p ${{ env.PORT }}:${{ env.PORT }} \"
+        Write-Host "     --restart unless-stopped \"
+        Write-Host "     ${{ needs.build.outputs.image-full }}"
+        Write-Host ""
+        Write-Host "5. Verify deployment:"
+        Write-Host "   curl -f http://localhost:${{ env.PORT }}/health"
+        Write-Host ""
+        Write-Host "6. Clean up old images:"
+        Write-Host "   docker system prune -f"
 
     # Uncomment and modify the following step when you have SSH access configured
     # - name: Execute deployment on production server
@@ -194,7 +203,7 @@ jobs:
 
   # cleanup:
   #   name: Cleanup Artifacts
-  #   runs-on: self-hosted
+  #   runs-on: Barebone
   #   needs: [build, publish, deploy]
   #   if: always()
     
