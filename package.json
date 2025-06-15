@@ -1,6 +1,6 @@
 {
   "name": "australian-bank-payment-api",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "BIAN-compliant payment initiation API for Australian banking systems",
   "main": "dist/app.js",
   "scripts": {
