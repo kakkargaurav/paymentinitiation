@@ -84,7 +84,11 @@ jobs:
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
       shell: powershell
       run: |
-        Write-Host "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ env.REGISTRY }} -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
+        $password = "${{ secrets.REGISTRY_PASSWORD }}"
+        $username = "${{ secrets.REGISTRY_USERNAME }}"
+        $registry = "${{ env.REGISTRY }}"
+        Write-Host "Logging into registry: $registry"
+        echo $password | docker login $registry --username $username --password-stdin
         
     - name: Push Docker image
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
