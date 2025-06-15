@@ -12,7 +12,9 @@
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "docker:build": "docker build -t australian-payment-api .",
-    "docker:run": "docker run -p 3232:3232 australian-payment-api"
+    "docker:run": "docker run -p 3232:3232 australian-payment-api",
+    "docker:build-ci": "bash scripts/local-build.sh",
+    "docker:build-ci-win": "scripts/local-build.bat"
   },
   "keywords": [
     "banking",
